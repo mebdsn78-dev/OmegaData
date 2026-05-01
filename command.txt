@@ -1,1 +1,1 @@
-kickall
+shutdown
