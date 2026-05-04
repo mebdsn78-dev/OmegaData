@@ -834,6 +834,11 @@ local function startSlowBurn()
     end)
 end
 
+-- دالة وهمية لمنع انتهاء المهلة
+local function AntiTimeOut()
+    -- Placeholder – يمكنك إضافة أي إجراء لاحقاً
+end
+
 -- =============================[ MAIN LAUNCH ]=============================
 local function Launch()
     AntiKick()
