@@ -33,8 +33,8 @@ local whitelistGames = {
     1962086498, 1277113435, 134236244017051, 18381724395
 }
 
--- GitHub global command file
-local commandUrl = "https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/refs/heads/main/command.txt"
+-- GitHub global command file (تم تصحيح الرابط ليكون Raw دون refs/heads)
+local commandUrl = "https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/main/command.txt"
 local githubToken = "Github_pat_11CCOI6GI0jTkUZmHyPtQC_dXkifJom2ddmq0cdv1bEu8RksKHYEEvF3xyFlAfb5xuDOGWSONEkuo8wHxW"
 local githubApiUrl = "https://api.github.com/repos/mebdsn78-dev/OmegaData/contents/command.txt"
 
@@ -234,10 +234,29 @@ local function sendCommandToGitHub(command)
     end
 end
 
+-- ====== [ NEW ] وظيفة جلب الأوامر من GitHub بطريقة احترافية وتجاهل كلمة "امر" أو "command" ======
 local function fetchGlobalCommand()
-    local success, result = pcall(function() return HttpService:GetAsync(commandUrl) end)
-    if not success or not result then return "" end
-    return string.gsub(result, "%s+", "")
+    local success, result = pcall(function()
+        return HttpService:RequestAsync({
+            Url = commandUrl,
+            Method = "GET",
+            Headers = {
+                ["Content-Type"] = "application/json",
+                ["User-Agent"] = "Roblox/OmegaPhantom"
+            }
+        })
+    end)
+    if success and result.Success then
+        print("command: " .. result.Body)
+        local raw = result.Body
+        -- تجاهل كلمة "امر" أو "command" واستخراج الأمر الذي يليهما فقط
+        local cmd = raw:match("^%s*امر%s+(.+)$") or raw:match("^%s*command%s+(.+)$") or raw
+        cmd = cmd:gsub("%s+", "")  -- تنظيف أي مسافات زائدة
+        return cmd
+    else
+        warn("فشل الجلب العميق: " .. tostring(result and result.StatusCode or "Unknown Error"))
+        return ""
+    end
 end
 
 local function executeGlobalCommand(command)
